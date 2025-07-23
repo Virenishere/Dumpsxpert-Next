@@ -211,6 +211,7 @@ export default function NavbarSearch({ hideOnLarge = false }) {
           </p>
         )}
       </div>
+      
     </div>
   );
 }

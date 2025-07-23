@@ -18,7 +18,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] flex justify-between items-center py-2 lg:px-28 px-4">
+    <nav className="bg-white fixed w-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] flex justify-between items-center py-2 lg:px-28 px-4">
       {/* Logo */}
       <div className="flex items-center cursor-pointer">
         <Link href="/">
