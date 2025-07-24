@@ -1,6 +1,10 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 // import { Providers } from './providers'; // <- client component
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import Navbar from "@/components/public/Navbar";
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,6 +20,12 @@ export default function RootLayout({ children }) {
         {/* <Providers> */}
         {children}
         {/* </Providers> */}
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <Navbar />
+        {children}
+        <Toaster />
       </body>
     </html>
   );
