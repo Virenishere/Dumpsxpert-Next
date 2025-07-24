@@ -1,16 +1,3 @@
-<<<<<<< HEAD
-=======
-import Image from "next/image";
-import Link from "next/link";
-import { Check } from "lucide-react";
-
-import banner from "@/assets/landingassets/banner.webp";
-import instance from "./lib/axios";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
-export const revalidate = 60; // ISR every 60s
->>>>>>> c3e8504cb1ad7ab875fe5c2d1544debc9924f6be
 
 "use client"
 import { Button } from "@/components/ui/button"
@@ -40,13 +27,11 @@ export default async function HomePage() {
   }
 
   return (
-<<<<<<< HEAD
     <div className="p-6 ">
        <Button>Click me</Button>
       <h1 className="text-2xl font-bold mb-4">All Orders</h1>
 <Login/>
     </div>
-=======
     <>
       {/* === Hero Section === */}
       <section className="w-full bg-white pt-24 px-4 sm:px-6 lg:px-20 flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
@@ -187,6 +172,5 @@ export default async function HomePage() {
         )}
       </section>
     </>
->>>>>>> c3e8504cb1ad7ab875fe5c2d1544debc9924f6be
   );
 }
