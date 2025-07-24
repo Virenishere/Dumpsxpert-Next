@@ -1,16 +1,10 @@
-// app/page.jsx or app/page.tsx
 import { Button } from "@/components/ui/button";
-import Login from "./auth/signin/page";
-import instance from "@/lib/axios";
 import { Check } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
-
-
-import banner from "@/assets/landingassets/banner.webp";
-
-
 import { Card, CardContent } from "@/components/ui/card";
+// import instance from "@/lib/axios";
+// import Image from "next/image";
+// import banner from "@/assets/landingassets/banner.webp";
 
 export const metadata = {
   title: "Create Next App",
@@ -18,10 +12,35 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  let categories = [];
-  let blogs = [];
-  let dumps = [];
+  // Placeholder fallback data
+  const categories = [
+    { _id: "all", category: "All" },
+    { _id: "cert", category: "Certifications" },
+    { _id: "update", category: "Updates" },
+  ];
 
+  const blogs = [
+    {
+      _id: "1",
+      slug: "how-to-pass-exam",
+      title: "How to Pass Your Next IT Exam",
+      metaDescription: "Learn the strategies to ace your certification.",
+    },
+    {
+      _id: "2",
+      slug: "exam-tips",
+      title: "Top Exam Prep Tips",
+      metaDescription: "Practical tips for boosting your exam success.",
+    },
+  ];
+
+  const dumps = [
+    { _id: "d1", name: "AWS Solutions Architect" },
+    { _id: "d2", name: "Microsoft Azure Fundamentals" },
+  ];
+
+  /*
+  // API calls disabled temporarily
   try {
     const [categoryRes, blogRes, dumpRes] = await Promise.all([
       instance.get("/api/blog-categories"),
@@ -39,25 +58,21 @@ export default async function HomePage() {
   } catch (error) {
     console.error("Failed to fetch homepage data:", error);
   }
+  */
 
   return (
-    <>
     <div className="p-6">
       <Button>Click me</Button>
       <h1 className="text-2xl font-bold mb-4">All Orders</h1>
-      <Login />
 
       {/* === Hero Section === */}
       <section className="w-full bg-white pt-24 px-4 sm:px-6 lg:px-20 flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
         <div className="w-full lg:w-1/2 mt-10 lg:mt-0">
           <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
-            Dumpsxpert Provides Best Quality Practice Exams & PDF For All IT
-            Certification Exams
+            Dumpsxpert Provides Best Quality Practice Exams & PDF For All IT Certification Exams
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6">
-            Get certified on your first attempt with our expertly crafted study
-            materials – available in PDF and browser-based practice exam
-            formats.
+            Get certified on your first attempt with our expertly crafted study materials – available in PDF and browser-based practice exam formats.
           </p>
           <ul className="space-y-3 text-gray-700 mb-6 text-sm sm:text-base">
             {[
@@ -81,13 +96,15 @@ export default async function HomePage() {
         </div>
 
         <div className="w-full lg:w-1/2 flex justify-center items-center">
-          {/* <Image
+          {/* 
+          <Image
             src={banner}
             alt="Professional IT certification preparation"
             className="w-full max-w-[600px] h-auto object-contain"
             placeholder="blur"
             priority
-          /> */}
+          /> 
+          */}
         </div>
       </section>
 
@@ -170,8 +187,5 @@ export default async function HomePage() {
         )}
       </section>
     </div>
-
-      
-    </>
   );
 }

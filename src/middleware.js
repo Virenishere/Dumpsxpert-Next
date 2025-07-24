@@ -3,41 +3,40 @@ import { NextResponse } from "next/server";
 
 export async function middleware(request) {
   const token = await getToken({ req: request });
-
   const { pathname } = request.nextUrl;
 
-  // Allow public routes (e.g., login, register, home)
+  // Public routes
   if (
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
-    pathname === "/"
+    pathname.startsWith("/auth") ||
+    pathname === "/" ||
+    pathname.startsWith("/api")
   ) {
     return NextResponse.next();
   }
 
-  // Require authentication for protected routes
+  // Protected routes
+  if (!token) {
+    const url = new URL("/auth/signin", request.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Role-based access control
   if (pathname.startsWith("/dashboard")) {
-    if (!token) {
-      const url = new URL("/login", request.url);
-      return NextResponse.redirect(url);
-    }
-
-    const role = token.role;
-
-    // Redirect users without proper role
+    const role = token.role || "guest";
+    
     if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
-      const url = new URL("/unauthorized", request.url);
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
     if (pathname.startsWith("/dashboard/student") && role !== "student") {
-      const url = new URL("/unauthorized", request.url);
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    if (pathname.startsWith("/dashboard/faculty") && role !== "faculty") {
-      const url = new URL("/unauthorized", request.url);
-      return NextResponse.redirect(url);
+    // Redirect to role-specific dashboard if accessing generic /dashboard
+    if (pathname === "/dashboard") {
+      const dashboardUrl = new URL(`/dashboard/${role}`, request.url);
+      return NextResponse.redirect(dashboardUrl);
     }
   }
 
@@ -45,5 +44,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/auth/:path*"],
 };

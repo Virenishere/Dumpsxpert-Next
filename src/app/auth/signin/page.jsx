@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
@@ -26,6 +26,8 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+
     try {
       const res = await signIn("credentials", {
         redirect: false,
@@ -35,25 +37,47 @@ export default function Login() {
 
       if (res?.error) {
         setError(res.error);
-      } else {
-        // Update Zustand store with user data
-        const session = await getSession();
-        setUser({
-          id: session?.user?.id,
-          email: session?.user?.email,
-          role: session?.user?.role,
-        });
-        router.push("/dashboard");
+        return;
+      }
+
+      const session = await getSession();
+      if (!session?.user) {
+        setError("Failed to get user session");
+        return;
+      }
+
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        role: session.user.role,
+      });
+
+      // Redirect based on role
+      switch (session.user.role) {
+        case "admin":
+          router.push("/dashboard/admin");
+          break;
+        case "student":
+          router.push("/dashboard/student");
+          break;
+        default:
+          router.push("/dashboard/guest");
       }
     } catch (err) {
       setError("An error occurred during login");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOAuthSignIn = (provider) => {
-    signIn(provider, { callbackUrl: "/dashboard" });
+  const handleOAuthSignIn = async (provider) => {
+    try {
+      await signIn(provider, { callbackUrl: "/dashboard" });
+    } catch (err) {
+      setError(`Failed to sign in with ${provider}`);
+      console.error(err);
+    }
   };
 
   return (

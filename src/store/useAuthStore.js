@@ -7,7 +7,7 @@ const useAuthStore = create(
       user: {
         id: null,
         email: null,
-        role: null, 
+        role: null,
       },
       isLoading: true,
       setUser: (user) => set({ user }),
@@ -18,7 +18,7 @@ const useAuthStore = create(
         }),
     }),
     {
-      name: 'auth-storage',
+      name: 'auth-storage', // Key in localStorage
     }
   )
 );
