@@ -203,8 +203,9 @@ export default function Register() {
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Already have an account?{" "}
+          {/* <Link to={"/auth/"}></Link> */}
           <span
-            onClick={() => router.push("/")}
+           
             className="text-blue-600 cursor-pointer hover:underline"
           >
             Login

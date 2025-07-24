@@ -1,12 +1,12 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-// import { Providers } from './providers'; // <- client component
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
-import Navbar from "@/components/public/Navbar";
+import { Geist, Geist_Mono } from 'next/font/google';
+import { Toaster } from '@/components/ui/sonner';
+import Navbar from '@/components/public/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 export const metadata = {
   title: 'Create Next App',
@@ -16,13 +16,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {/* <Providers> */}
-        {children}
-        {/* </Providers> */}
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Navbar />
         {children}
         <Toaster />

@@ -11,6 +11,7 @@ import {
   HiEye,
   HiEyeOff,
 } from "react-icons/hi";
+import Link from "next/link";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -116,12 +117,13 @@ export default function Login() {
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Don&apos;t have an account?{" "}
+         <Link to="/auth/signup">
           <span
-            onClick={() => router.push("/auth/signup")}
             className="text-blue-600 cursor-pointer hover:underline"
           >
             Signup
           </span>
+          </Link>
         </p>
       </div>
     </div>
