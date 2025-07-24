@@ -1,32 +1,45 @@
-import { NextResponse } from "next/server";
-import dbConnect from "@/lib/mongodb";
-import User from "@/models/User";
-import jwt from "jsonwebtoken";
+import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongo';
+import User from '@/models/userSchema';
+import bcrypt from 'bcrypt';
 
 export async function POST(req) {
   try {
-    const { email, password } = await req.json();
     await dbConnect();
+    const { email, password } = await req.json();
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return NextResponse.json({ message: "User already exists" }, { status: 400 });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        { message: 'User already exists' },
+        { status: 400 }
+      );
     }
 
-    const user = await User.create({ email, password, provider: "email", isVerified: true });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
-    const res = NextResponse.json({ message: "User registered", user });
-    res.cookies.set("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60,
+    // Create new user
+    const user = new User({
+      email,
+      password,
+      role: 'guest',
+      isVerified: true, // Since we've verified via OTP
+      provider: 'email'
     });
 
-    return res;
-  } catch (err) {
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    await user.save();
+
+    return NextResponse.json({
+      message: 'User created successfully',
+      user: {
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    return NextResponse.json(
+      { message: 'Failed to create user' },
+      { status: 500 }
+    );
   }
 }

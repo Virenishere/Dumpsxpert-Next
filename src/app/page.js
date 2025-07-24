@@ -5,12 +5,11 @@ import instance from "@/lib/axios";
 import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-// import banner from "@/public/banner.png"; // adjust as needed
-import { Check } from "lucide-react";
+
 
 import banner from "@/assets/landingassets/banner.webp";
-import instance from "../lib/axios";
-import { Button } from "@/components/ui/button";
+
+
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
@@ -42,6 +41,7 @@ export default async function HomePage() {
   }
 
   return (
+    <>
     <div className="p-6">
       <Button>Click me</Button>
       <h1 className="text-2xl font-bold mb-4">All Orders</h1>

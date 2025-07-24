@@ -7,7 +7,8 @@ import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import { HiOutlineMail, HiOutlineLockClosed, HiOutlineKey } from "react-icons/hi";
-import { api } from "../../../lib/axios";
+import instance from "@/lib/axios";
+import { Link } from "next/link";
 
 export default function Register() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/api/auth/email/send-otp", { email });
+      const { data } = await instance.post("/api/auth/email/send-otp", { email });
       setMessage(data.message || "OTP sent successfully");
       setError("");
       setStep("otp");
@@ -47,7 +48,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/api/auth/email/verify-otp", { email, otp });
+      const { data } = await instance.post("/api/auth/email/verify-otp", { email, otp });
       setMessage(data.message || "OTP verified");
       setError("");
       setStep("password");
@@ -66,16 +67,32 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/api/auth/signup", { email, password });
-      setMessage("Account created! Redirecting...");
+      await instance.post("/api/auth/signup", { email, password });
+      setMessage("Account created! Logging you in...");
       setError("");
-      setTimeout(() => router.push("/guest/dashboard"), 1500); // redirect
+      
+      // Auto login after successful registration
+      const loginRes = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (loginRes?.error) {
+        setError(loginRes.error);
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
       setMessage("");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOAuthSignIn = (provider) => {
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -188,13 +205,13 @@ export default function Register() {
 
         <div className="flex flex-col gap-4">
           <button
-            onClick={() => signIn("google")}
+            onClick={() => handleOAuthSignIn("google")}
             className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded-md transition-all duration-200"
           >
             <FcGoogle className="text-xl" /> Google
           </button>
           <button
-            onClick={() => signIn("facebook")}
+            onClick={() => handleOAuthSignIn("facebook")}
             className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded-md transition-all duration-200"
           >
             <FaFacebookF className="text-xl" /> Facebook

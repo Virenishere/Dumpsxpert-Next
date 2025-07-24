@@ -9,31 +9,51 @@ import {
   HiOutlineMail,
   HiOutlineLockClosed,
   HiEye,
-  HiEyeOff,
+  HiEyeOff
 } from "react-icons/hi";
 import Link from "next/link";
+import useAuthStore from '@/store/useAuthStore';
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-
-    if (res?.error) {
-      setError(res.error);
-    } else {
-      router.push("/dashboard");
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        // Update Zustand store with user data
+        const session = await getSession();
+        setUser({
+          id: session?.user?.id,
+          email: session?.user?.email,
+          role: session?.user?.role,
+        });
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("An error occurred during login");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleOAuthSignIn = (provider) => {
+    signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -43,12 +63,13 @@ export default function Login() {
           Login
         </h2>
 
-        {/* Email/Password Login Form */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <div className="relative">
               <input
                 type="email"
@@ -63,9 +84,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -76,53 +95,57 @@ export default function Login() {
                 placeholder="Password"
               />
               <HiOutlineLockClosed className="absolute top-2.5 left-3 text-gray-400 text-lg" />
-              <span
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute top-2.5 right-3 text-gray-400 text-lg cursor-pointer"
+                className="absolute top-2.5 right-3 text-gray-400 text-lg"
               >
                 {showPassword ? <HiEyeOff /> : <HiEye />}
-              </span>
+              </button>
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-all duration-200"
+            disabled={loading}
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
-            Login
+            {loading ? "Loading..." : "Login"}
           </button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => handleOAuthSignIn("google")}
+              className="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <FcGoogle className="text-xl" />
+              <span className="ml-2">Google</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOAuthSignIn("facebook")}
+              className="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <FaFacebookF className="text-xl text-blue-600" />
+              <span className="ml-2">Facebook</span>
+            </button>
+          </div>
         </form>
 
-        <div className="py-6 text-center text-gray-400">
-          --------------------- OR --------------------
-        </div>
-
-        {/* OAuth Buttons */}
-        <div className="flex flex-col gap-4 mb-6">
-          <button
-            onClick={() => signIn("google")}
-            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded-md transition-all duration-200"
-          >
-            <FcGoogle className="text-xl" /> Google
-          </button>
-          <button
-            onClick={() => signIn("facebook")}
-            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded-md transition-all duration-200"
-          >
-            <FaFacebookF className="text-xl" /> Facebook
-          </button>
-        </div>
-
-        <p className="mt-6 text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
-         <Link to="/auth/signup">
-          <span
-            className="text-blue-600 cursor-pointer hover:underline"
-          >
-            Signup
-          </span>
+        <p className="text-center text-sm text-gray-600 mt-4">
+          Don't have an account?{" "}
+          <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700">
+            Sign up
           </Link>
         </p>
       </div>
