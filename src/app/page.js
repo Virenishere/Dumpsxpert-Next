@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 
 import banner from "@/assets/landingassets/banner.webp";
-import instance from "./lib/axios";
+import instance from "../lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -173,6 +173,8 @@ export default async function HomePage() {
           </>
         )}
       </section>
+
+      
     </>
   );
 }

@@ -136,7 +136,7 @@ export default function NavbarSearch({ hideOnLarge = false }) {
       >
         {/* Input Section */}
         <div className="relative w-full flex justify-center mb-6">
-          <div className="relative w-full max-w-6xl">
+          <div className="relative w-full">
             {/* Centered Label */}
             <label
               htmlFor="search"
