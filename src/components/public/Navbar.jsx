@@ -12,6 +12,7 @@ const navlinks = [
   { label: "About Us", path: "/about" },
   { label: "Contact Us", path: "/contact" },
   { label: "Blogs", path: "/blogs" },
+  { label: "Cart", path: "/cart" },
 ];
 
 export default function Navbar() {
