@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import LogoutButton from "@/components/public/LogoutButton";
 // import instance from "@/lib/axios";
 // import Image from "next/image";
 // import banner from "@/assets/landingassets/banner.webp";
@@ -183,6 +184,7 @@ export default async function HomePage() {
                 <Link href="/blogs">See All Blogs</Link>
               </Button>
             </div>
+            <LogoutButton />
           </>
         )}
       </section>

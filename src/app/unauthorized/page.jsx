@@ -1,3 +1,5 @@
+
+
 export default function UnauthorizedPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
@@ -5,6 +7,7 @@ export default function UnauthorizedPage() {
       <p className="text-lg text-gray-700">
         You don’t have permission to access this page.
       </p>
+      
     </div>
   );
 }
