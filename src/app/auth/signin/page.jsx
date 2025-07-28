@@ -40,11 +40,12 @@ export default function Login() {
         return;
       }
 
-      const session = await getSession();
+      const session =  localStorage.getItem("auth-storage");
       if (!session?.user) {
         setError("Failed to get user session");
         return;
       }
+      console.log(session);
 
       setUser({
         id: session.user.id,

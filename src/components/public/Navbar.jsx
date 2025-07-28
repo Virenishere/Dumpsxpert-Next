@@ -11,7 +11,7 @@ const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
   { label: "Contact Us", path: "/contact" },
-  { label: "IT Dumps", path: "/contact" },
+  { label: "IT Dumps", path: "/ItDumps" },
   { label: "Blogs", path: "/blogs" },
   { label: "Cart", path: "/cart" },
 ];
@@ -62,7 +62,7 @@ export default function Navbar() {
 
         {/* Login/Register Button (desktop only) */}
         <Link
-          href="auth/signin"
+          href="/auth/signin"
           className="hidden lg:inline-block bg-indigo-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
         >
           Login / Register
@@ -93,7 +93,7 @@ export default function Navbar() {
             ))}
             <li>
               <Link
-                to="/auth/signin"
+                href="/auth/signin"
                 onClick={() => setIsOpen(false)}
                 className="block w-full text-center bg-indigo-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
               >
