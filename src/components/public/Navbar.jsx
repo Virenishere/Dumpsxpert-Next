@@ -91,7 +91,8 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
-            <li>
+            <li> 
+              {/* comment */}
               <Link
                 href="/auth/signin"
                 onClick={() => setIsOpen(false)}
