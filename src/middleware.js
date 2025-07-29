@@ -21,24 +21,23 @@ export async function middleware(request) {
     return NextResponse.redirect(url);
   }
 
-  // Role-based access control
-  if (pathname.startsWith("/dashboard")) {
-    const role = token.role || "guest";
-    
-    if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
+  // TEMP: Disabled role-based access control
+  // if (pathname.startsWith("/dashboard")) {
+  //   const role = token.role || "guest";
 
-    if (pathname.startsWith("/dashboard/student") && role !== "student") {
-      return NextResponse.redirect(new URL("/unauthorized", request.url));
-    }
+  //   if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
+  //     return NextResponse.redirect(new URL("/unauthorized", request.url));
+  //   }
 
-    // Redirect to role-specific dashboard if accessing generic /dashboard
-    if (pathname === "/dashboard") {
-      const dashboardUrl = new URL(`/dashboard/${role}`, request.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
+  //   if (pathname.startsWith("/dashboard/student") && role !== "student") {
+  //     return NextResponse.redirect(new URL("/unauthorized", request.url));
+  //   }
+
+  //   if (pathname === "/dashboard") {
+  //     const dashboardUrl = new URL(`/dashboard/${role}`, request.url);
+  //     return NextResponse.redirect(dashboardUrl);
+  //   }
+  // }
 
   return NextResponse.next();
 }
