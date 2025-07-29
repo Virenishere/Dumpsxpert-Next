@@ -1,11 +1,8 @@
 "use client";
-import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
-import { Calendar, FolderOpen } from "lucide-react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import React, { useState, useEffect, useRef } from "react";
+import { Calendar, FolderOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const examDumps = [
   {
@@ -65,56 +62,117 @@ const examDumps = [
 ];
 
 export default function ExamDumpsSlider() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [slidesPerView, setSlidesPerView] = useState(3); // Dynamically adjust
+  const totalSlides = examDumps.length;
+  const trackRef = useRef(null);
+
+  // Update slides per view based on screen size
+  useEffect(() => {
+    const updateSlidesPerView = () => {
+      if (window.innerWidth < 640) setSlidesPerView(1);
+      else if (window.innerWidth < 1024) setSlidesPerView(2);
+      else setSlidesPerView(4);
+    };
+
+    updateSlidesPerView();
+    window.addEventListener("resize", updateSlidesPerView);
+    return () => window.removeEventListener("resize", updateSlidesPerView);
+  }, []);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? totalSlides - slidesPerView : prev - 1
+    );
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) =>
+      prev >= totalSlides - slidesPerView ? 0 : prev + 1
+    );
+  };
+
+  // Autoplay every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNext();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [slidesPerView]); // Reset autoplay when slidesPerView changes
+
+  // Smooth transition effect
+  useEffect(() => {
+    if (trackRef.current) {
+      const offset = (currentIndex * 100) / slidesPerView;
+      trackRef.current.style.transform = `translateX(-${offset}%)`;
+      trackRef.current.style.transition = "transform 0.6s ease-in-out";
+    }
+  }, [currentIndex, slidesPerView]);
+
   return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900">
+    <section className="py-20 bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-4xl font-bold text-center text-gray-800 dark:text-white mb-12">
-          Most Popular IT Certification <span className="text-orange-500">Dumps</span>
+          Most Popular IT Certification{" "}
+          <span className="text-orange-500">Dumps</span>
         </h2>
 
-        <Swiper
-          modules={[Navigation, Pagination]}
-          spaceBetween={24}
-          slidesPerView={4}
-          navigation
-          pagination={{ clickable: true }}
-          breakpoints={{
-            320: { slidesPerView: 1 },
-            640: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 },
-            1280: { slidesPerView: 4 },
-          }}
-        >
-          {examDumps.map((dump) => (
-            <SwiperSlide key={dump.id}>
-              <div className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                <img
-                  src={dump.image}
-                  alt={dump.title}
-                  className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="p-5 flex flex-col flex-grow">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
-                    {dump.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{dump.code}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow mb-4">
-                    {dump.description}
-                  </p>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
-                    <Calendar className="w-4 h-4" /> Updated: {dump.updatedOn}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-1">
-                    <FolderOpen className="w-4 h-4" /> Category: {dump.category}
-                  </div>
-                  <button className="mt-auto w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-orange-600 transition">
-                    View More
-                  </button>
-                </div>
+        {/* Navigation */}
+        <div className="flex justify-between items-center mb-6">
+          <Button variant="outline" size="icon" onClick={handlePrev}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleNext}>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Slider */}
+        <div className="relative overflow-hidden">
+          <div
+            ref={trackRef}
+            className="flex"
+            style={{
+              width: `${(totalSlides / slidesPerView) * 100}%`,
+            }}
+          >
+            {examDumps.map((dump) => (
+              <div
+                key={dump.id}
+                style={{ flex: `0 0 ${100 / slidesPerView}%` }}
+                className="px-2"
+              >
+                <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-all duration-300">
+                  <img
+                    src={dump.image}
+                    alt={dump.title}
+                    className="h-40 w-full object-cover"
+                  />
+                  <CardContent className="flex flex-col flex-grow p-5">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+                      {dump.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      {dump.code}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow mb-4">
+                      {dump.description}
+                    </p>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                      <Calendar className="w-4 h-4" /> Updated: {dump.updatedOn}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-1">
+                      <FolderOpen className="w-4 h-4" /> Category: {dump.category}
+                    </div>
+                    <Button className="mt-auto w-full bg-blue-500 hover:bg-orange-600 text-white">
+                      View More
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
