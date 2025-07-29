@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from "@/lib/auth/authOptions";
 
 export default async function DashboardLayout({
   children,

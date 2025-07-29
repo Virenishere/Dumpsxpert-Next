@@ -1,4 +1,3 @@
-// pages/register.js
 "use client";
 
 import { useState } from "react";
@@ -8,7 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import { HiOutlineMail, HiOutlineLockClosed, HiOutlineKey } from "react-icons/hi";
 import instance from "@/lib/axios";
-import { Link } from "next/link";
+import Link from "next/link";
 
 export default function Register() {
   const router = useRouter();
@@ -24,7 +23,7 @@ export default function Register() {
 
   const handleSendOtp = async () => {
     if (!isValidEmail(email)) {
-      setMessage("Please enter a valid email");
+      setError("Please enter a valid email");
       return;
     }
     setLoading(true);
@@ -43,7 +42,7 @@ export default function Register() {
 
   const handleVerifyOtp = async () => {
     if (!otp.trim()) {
-      setMessage("Please enter OTP");
+      setError("Please enter OTP");
       return;
     }
     setLoading(true);
@@ -62,7 +61,7 @@ export default function Register() {
 
   const handleSubmitPassword = async () => {
     if (password.length < 6) {
-      setMessage("Password must be at least 6 characters");
+      setError("Password must be at least 6 characters");
       return;
     }
     setLoading(true);
@@ -70,8 +69,7 @@ export default function Register() {
       await instance.post("/api/auth/signup", { email, password });
       setMessage("Account created! Logging you in...");
       setError("");
-      
-      // Auto login after successful registration
+
       const loginRes = await signIn("credentials", {
         redirect: false,
         email,
@@ -111,7 +109,6 @@ export default function Register() {
           </div>
         )}
 
-        {/* Step-based flow */}
         {step === "email" && (
           <div className="space-y-4 mb-6">
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -193,7 +190,6 @@ export default function Register() {
           </div>
         )}
 
-        {/* OAuth options */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
@@ -220,13 +216,9 @@ export default function Register() {
 
         <p className="mt-6 text-sm text-center text-gray-600">
           Already have an account?{" "}
-          {/* <Link to={"/auth/"}></Link> */}
-          <span
-           
-            className="text-blue-600 cursor-pointer hover:underline"
-          >
+          <Link href="/auth/signin" className="text-blue-600 cursor-pointer hover:underline">
             Login
-          </span>
+          </Link>
         </p>
       </div>
     </div>
