@@ -11,7 +11,6 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -21,6 +20,7 @@ export default function SignIn() {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      console.log("Session data:", session.user);
       switch (session.user.role) {
         case "admin":
           router.push("/dashboard/admin");
@@ -44,6 +44,7 @@ export default function SignIn() {
         redirect: false,
         callbackUrl,
       });
+      console.log("signIn result:", result);
       if (result?.error) {
         setError(result.error);
       } else {
@@ -67,7 +68,11 @@ export default function SignIn() {
   };
 
   if (status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -83,14 +88,18 @@ export default function SignIn() {
               (authError === "Callback"
                 ? "Authentication failed. Please try again."
                 : authError === "OAuthAccountNotLinked"
-                ? "This email is registered with another provider. Try your original sign-in method."
+                ? "This email is registered with another provider. It has now been linked. Please try again."
+                : authError?.includes("User validation failed")
+                ? "Failed to create user account. Please try again."
                 : "An error occurred. Please try again.")}
           </div>
         )}
 
         <form onSubmit={handleEmailSignIn} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <div className="relative">
               <input
                 type="email"
@@ -123,7 +132,6 @@ export default function SignIn() {
         </div>
 
         <div>
-          {/* comment */}
           <button
             type="button"
             onClick={() => handleOAuthSignIn("google")}

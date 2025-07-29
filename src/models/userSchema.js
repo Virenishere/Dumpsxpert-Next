@@ -19,20 +19,16 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Hash password before saving
 userSchema.pre("save", async function (next) {
   if (this.isModified("password") && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-
-  if (this.isModified("subscription") && this.subscription === "yes") {
+  if (this.isModified("subscription") && this.subscription === "yes" && this.role !== "admin") {
     this.role = "student";
   }
-
   next();
 });
 
-// Method to compare password
 userSchema.methods.comparePassword = async function (plainPassword) {
   return await bcrypt.compare(plainPassword, this.password);
 };
