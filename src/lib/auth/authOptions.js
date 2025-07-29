@@ -1,14 +1,57 @@
-const NextAuth = require("next-auth").default;
-const GoogleProvider = require("next-auth/providers/google").default;
-const EmailProvider = require("next-auth/providers/email").default;
-const { MongoDBAdapter } = require("@next-auth/mongodb-adapter");
-const { connectMongoDB, clientPromise } = require("@/lib/mongo");
-const User = require("@/models/userSchema");
-const nodemailer = require("nodemailer");
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import { connectMongoDB, clientPromise } from "@/lib/mongo";
+import User from "@/models/userSchema";
+import bcrypt from "bcryptjs";
 
-const authOptions = {
+export const authOptions = {
   adapter: MongoDBAdapter(clientPromise, { collections: { Users: "User" } }),
   providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required");
+        }
+
+        await connectMongoDB();
+        const user = await User.findOne({ email: credentials.email }).select("+password");
+
+        if (!user || !user.isVerified) {
+          throw new Error("User not found or not verified");
+        }
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isPasswordValid) {
+          throw new Error("Invalid credentials");
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          subscription: user.subscription,
+          provider: user.provider,
+          providerId: user.providerId,
+          isVerified: user.isVerified,
+          phone: user.phone,
+          address: user.address,
+          dob: user.dob,
+          gender: user.gender,
+          bio: user.bio,
+          profileImage: user.profileImage,
+          createdAt: user.createdAt,
+        };
+      },
+    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -20,32 +63,9 @@ const authOptions = {
         },
       },
     }),
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: Number(process.env.EMAIL_SERVER_PORT),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      },
-      from: process.env.EMAIL_FROM,
-      async sendVerificationRequest({ identifier: email, url, provider: { server, from } }) {
-        try {
-          const transport = nodemailer.createTransport(server);
-          const result = await transport.sendMail({
-            to: email,
-            from,
-            subject: "Sign in to DumpsXpert",
-            text: `Please click the following link to sign in: ${url}`,
-            html: `<p>Please click the following link to sign in:</p><a href="${url}">Sign in</a>`,
-          });
-          console.log("Email sent successfully:", result);
-        } catch (error) {
-          console.error("Error sending verification email:", error);
-          throw new Error("Failed to send verification email");
-        }
-      },
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
     }),
   ],
   session: {
@@ -55,61 +75,21 @@ const authOptions = {
   callbacks: {
     async jwt({ token, user, account }) {
       if (user) {
-        await connectMongoDB();
-        const mongooseUser = await User.findOne({ email: user.email });
-
-        if (mongooseUser) {
-          token.id = mongooseUser._id.toString();
-          token.name = mongooseUser.name;
-          token.email = mongooseUser.email;
-          token.role = mongooseUser.role;
-          token.subscription = mongooseUser.subscription;
-          token.provider = mongooseUser.provider;
-          token.providerId = mongooseUser.providerId;
-          token.isVerified = mongooseUser.isVerified;
-          token.phone = mongooseUser.phone;
-          token.address = mongooseUser.address;
-          token.dob = mongooseUser.dob;
-          token.gender = mongooseUser.gender;
-          token.bio = mongooseUser.bio;
-          token.profileImage = mongooseUser.profileImage;
-          token.createdAt = mongooseUser.createdAt;
-        } else {
-          const newUser = new User({
-            name: user.name || user.email.split("@")[0],
-            email: user.email,
-            provider: account?.provider || "email",
-            providerId: account?.providerAccountId,
-            isVerified: account?.provider === "google",
-            role: "guest",
-            subscription: "no",
-            profileImage: user.image || "",
-            phone: "",
-            address: "",
-            dob: null,
-            gender: null,
-            bio: "",
-            createdAt: new Date(),
-          });
-
-          await newUser.save();
-
-          token.id = newUser._id.toString();
-          token.name = newUser.name;
-          token.email = newUser.email;
-          token.role = newUser.role;
-          token.subscription = newUser.subscription;
-          token.provider = newUser.provider;
-          token.providerId = newUser.providerId;
-          token.isVerified = newUser.isVerified;
-          token.phone = newUser.phone;
-          token.address = newUser.address;
-          token.dob = newUser.dob;
-          token.gender = newUser.gender;
-          token.bio = newUser.bio;
-          token.profileImage = newUser.profileImage;
-          token.createdAt = newUser.createdAt;
-        }
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
+        token.subscription = user.subscription;
+        token.provider = user.provider;
+        token.providerId = user.providerId;
+        token.isVerified = user.isVerified;
+        token.phone = user.phone;
+        token.address = user.address;
+        token.dob = user.dob;
+        token.gender = user.gender;
+        token.bio = user.bio;
+        token.profileImage = user.profileImage;
+        token.createdAt = user.createdAt;
       }
 
       if (account) {
@@ -143,43 +123,30 @@ const authOptions = {
       await connectMongoDB();
       const existingUser = await User.findOne({ email: user.email });
 
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "facebook") {
         if (existingUser) {
-          if (existingUser.provider !== "google") {
-            existingUser.provider = "google";
+          if (existingUser.provider !== account.provider) {
+            existingUser.provider = account.provider;
             existingUser.providerId = account.providerAccountId;
             existingUser.isVerified = true;
             existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
             await existingUser.save();
           }
-          return profile?.email_verified && profile?.email?.endsWith("@gmail.com");
+          return (account.provider === "google" && profile?.email_verified && profile?.email?.endsWith("@gmail.com")) ||
+                 (account.provider === "facebook");
         }
-      } else if (account?.provider === "email") {
-        if (existingUser) {
-          existingUser.provider = "email";
-          existingUser.providerId = null;
-          existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
-          await existingUser.save();
-          return true;
-        }
+        return true;
       }
 
-      return true;
+      return true; // Credentials provider handles validation
     },
   },
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
+    signOut: "/auth/signout",
   },
   secret: process.env.AUTH_SECRET,
 };
 
-const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
-
-module.exports = {
-  authOptions,
-  handlers,
-  auth,
-  signIn,
-  signOut,
-};
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);

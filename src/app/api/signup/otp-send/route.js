@@ -8,9 +8,11 @@ export async function POST(req) {
   try {
     const { email } = await req.json();
 
-    if (!email) {
+    console.log("Received OTP send request with email:", email);
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
-        { message: "Email is required" },
+        { message: "Invalid email address" },
         { status: 400 }
       );
     }
@@ -24,25 +26,49 @@ export async function POST(req) {
       );
     }
 
+    // Rate limiting
+    const maxAttempts = 5;
+    const otpRecord = await Otp.findOne({ email });
+    if (otpRecord && otpRecord.attempts >= maxAttempts) {
+      return NextResponse.json(
+        { message: "Too many OTP requests. Try again later." },
+        { status: 429 }
+      );
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     await Otp.findOneAndUpdate(
       { email },
-      { email, otp, otpExpires, attempts: 0 },
+      { email, otp, otpExpires, $inc: { attempts: 1 } },
       { upsert: true, new: true }
     );
 
+    if (!process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
+      console.error("SMTP credentials are missing");
+      return NextResponse.json(
+        { message: "Server configuration error: Missing SMTP credentials" },
+        { status: 500 }
+      );
+    }
+
+    console.log("EMAIL_SERVER_USER:", process.env.EMAIL_SERVER_USER);
+    console.log("EMAIL_SERVER_PASSWORD:", process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing");
+    console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.EMAIL_SERVER_HOST,
+      port: parseInt(process.env.EMAIL_SERVER_PORT, 10),
+      secure: false, // Use TLS for port 587
       auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASS,
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
       },
     });
 
     await transporter.sendMail({
-      from: process.env.SMTP_EMAIL,
+      from: process.env.EMAIL_FROM,
       to: email,
       subject: "Your Verification Code - DumpsXpert",
       text: `Your verification code is: ${otp}. Valid for 10 minutes.`,
@@ -61,7 +87,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Send OTP error:", error);
     return NextResponse.json(
-      { message: "Failed to send OTP" },
+      { message: `Failed to send OTP: ${error.message}` },
       { status: 500 }
     );
   }

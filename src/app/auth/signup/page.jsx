@@ -1,223 +1,180 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF } from "react-icons/fa";
-import { HiOutlineMail, HiOutlineLockClosed, HiOutlineKey } from "react-icons/hi";
-import instance from "@/lib/axios";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function Register() {
-  const router = useRouter();
+export default function SignUp() {
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [step, setStep] = useState("email");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
-  const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  const handleSendOtp = async () => {
-    if (!isValidEmail(email)) {
-      setError("Please enter a valid email");
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address");
       return;
     }
-    setLoading(true);
+
     try {
-      const { data } = await instance.post("/api/auth/email/send-otp", { email });
-      setMessage(data.message || "OTP sent successfully");
-      setError("");
-      setStep("otp");
+      const response = await fetch("/api/signup/otp-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || "Failed to send OTP");
+        if (data.message.includes("already exists")) {
+          router.push("/auth/signin");
+        }
+        return;
+      }
+
+      setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send OTP");
-      setMessage("");
-    } finally {
-      setLoading(false);
+      setError("An error occurred. Please try again.");
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (!otp.trim()) {
-      setError("Please enter OTP");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { data } = await instance.post("/api/auth/email/verify-otp", { email, otp });
-      setMessage(data.message || "OTP verified");
-      setError("");
-      setStep("password");
-    } catch (err) {
-      setError(err.response?.data?.message || "OTP verification failed");
-      setMessage("");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setError("");
 
-  const handleSubmitPassword = async () => {
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
-    setLoading(true);
-    try {
-      await instance.post("/api/auth/signup", { email, password });
-      setMessage("Account created! Logging you in...");
-      setError("");
 
-      const loginRes = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
+    try {
+      const response = await fetch("/api/signup/otp-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp, password, name }),
       });
 
-      if (loginRes?.error) {
-        setError(loginRes.error);
-      } else {
-        router.push("/dashboard");
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || "OTP verification failed");
+        return;
       }
+
+      const result = await signIn("email", {
+        email,
+        redirect: false,
+      });
+
+      if (!result.ok) {
+        setError("Sign-in after signup failed");
+        return;
+      }
+
+      router.push("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-      setMessage("");
-    } finally {
-      setLoading(false);
+      setError("An error occurred. Please try again.");
     }
   };
 
-  const handleOAuthSignIn = (provider) => {
-    signIn(provider, { callbackUrl: "/dashboard" });
+  const handleOAuthSignUp = async (provider) => {
+    try {
+      const result = await signIn(provider, { callbackUrl: "/dashboard" });
+      if (result?.error) {
+        setError("OAuth sign-up failed");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Register</h2>
-
-        {message && (
-          <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded text-sm text-center">
-            {message}
-          </div>
-        )}
-        {error && (
-          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm text-center">
-            {error}
-          </div>
-        )}
-
-        {step === "email" && (
-          <div className="space-y-4 mb-6">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <div className="relative">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {step === 1 ? (
+          <form onSubmit={handleSendOTP}>
+            <div className="mb-4">
+              <label className="block text-gray-700">Email</label>
               <input
                 type="email"
-                className="w-full px-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+                required
               />
-              <HiOutlineMail className="absolute top-2.5 left-3 text-gray-400 text-lg" />
             </div>
             <button
-              onClick={handleSendOtp}
-              disabled={!isValidEmail(email) || loading}
-              className={`w-full py-2 rounded-md text-white transition-all duration-300 ${
-                isValidEmail(email) && !loading
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+              type="submit"
+              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
             >
-              {loading ? "Sending..." : "Send OTP"}
+              Send OTP
             </button>
-          </div>
-        )}
-
-        {step === "otp" && (
-          <div className="space-y-4 mb-6">
-            <label className="block text-sm font-medium text-gray-700">OTP</label>
-            <div className="relative">
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOTP}>
+            <div className="mb-4">
+              <label className="block text-gray-700">Name</label>
               <input
                 type="text"
-                className="w-full px-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                placeholder="OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+                required
               />
-              <HiOutlineKey className="absolute top-2.5 left-3 text-gray-400 text-lg" />
             </div>
-            <button
-              onClick={handleVerifyOtp}
-              disabled={!otp.trim() || loading}
-              className={`w-full py-2 rounded-md text-white transition-all duration-300 ${
-                otp.trim() && !loading
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
-          </div>
-        )}
-
-        {step === "password" && (
-          <div className="space-y-4 mb-6">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <div className="relative">
+            <div className="mb-4">
+              <label className="block text-gray-700">Password</label>
               <input
                 type="password"
-                className="w-full px-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+                required
               />
-              <HiOutlineLockClosed className="absolute top-2.5 left-3 text-gray-400 text-lg" />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">OTP</label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
             </div>
             <button
-              onClick={handleSubmitPassword}
-              disabled={password.length < 6 || loading}
-              className={`w-full py-2 rounded-md text-white transition-all duration-300 ${
-                password.length >= 6 && !loading
-                  ? "bg-purple-600 hover:bg-purple-700"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+              type="submit"
+              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
             >
-              {loading ? "Submitting..." : "Submit"}
+              Verify OTP & Sign Up
             </button>
-          </div>
+          </form>
         )}
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">or continue with</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
+        <div className="mt-4">
           <button
-            onClick={() => handleOAuthSignIn("google")}
-            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-red-100 hover:bg-red-200 text-red-600 font-semibold rounded-md transition-all duration-200"
+            onClick={() => handleOAuthSignUp("google")}
+            className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 mb-2"
           >
-            <FcGoogle className="text-xl" /> Google
+            Sign Up with Google
           </button>
           <button
-            onClick={() => handleOAuthSignIn("facebook")}
-            className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-blue-100 hover:bg-blue-200 text-blue-600 font-semibold rounded-md transition-all duration-200"
+            onClick={() => handleOAuthSignUp("facebook")}
+            className="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900"
           >
-            <FaFacebookF className="text-xl" /> Facebook
+            Sign Up with Facebook
           </button>
         </div>
-
-        <p className="mt-6 text-sm text-center text-gray-600">
+        <p className="mt-4 text-center">
           Already have an account?{" "}
-          <Link href="/auth/signin" className="text-blue-600 cursor-pointer hover:underline">
-            Login
+          <Link href="/auth/signin" className="text-blue-500 hover:underline">
+            Sign In
           </Link>
         </p>
       </div>
