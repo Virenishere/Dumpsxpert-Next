@@ -23,7 +23,7 @@ export const authOptions = {
     EmailProvider({
       server: {
         host: process.env.EMAIL_SERVER_HOST,
-        port: Number(process.env.EMAIL_SERVER_PORT),
+        port: parseInt(process.env.EMAIL_SERVER_PORT, 10),
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
@@ -31,14 +31,20 @@ export const authOptions = {
       },
       from: process.env.EMAIL_FROM,
       async sendVerificationRequest({ identifier: email, url, provider: { server, from } }) {
-        const transport = nodemailer.createTransport(server);
-        await transport.sendMail({
-          to: email,
-          from,
-          subject: "Sign in to Your Application",
-          text: `Please click the following link to sign in: ${url}`,
-          html: `<p>Please click the following link to sign in:</p><a href="${url}">Sign in</a>`,
-        });
+        try {
+          const transport = nodemailer.createTransport(server);
+          const result = await transport.sendMail({
+            to: email,
+            from,
+            subject: "Sign in to DumpsXpert",
+            text: `Please click the following link to sign in: ${url}`,
+            html: `<p>Please click the following link to sign in:</p><a href="${url}">Sign in</a>`,
+          });
+          console.log("Email sent successfully:", result);
+        } catch (error) {
+          console.error("Error sending verification email:", error);
+          throw new Error("Failed to send verification email");
+        }
       },
     }),
   ],
@@ -51,18 +57,17 @@ export const authOptions = {
       if (user) {
         await connectMongoDB();
         const mongooseUser = await User.findOne({ email: user.email });
-
         if (mongooseUser) {
           token.id = mongooseUser._id.toString();
           token.role = mongooseUser.role;
           token.subscription = mongooseUser.subscription;
         } else {
           const newUser = new User({
-            name: user.name,
+            name: user.name || user.email.split("@")[0],
             email: user.email,
             provider: account?.provider || "email",
             providerId: account?.providerAccountId,
-            isVerified: account?.provider === "google",
+            isVerified: account?.provider === "google" ? true : false,
             role: "guest",
             subscription: "no",
             profileImage: user.image,
@@ -74,10 +79,7 @@ export const authOptions = {
         }
       }
 
-      if (account) {
-        token.provider = account.provider;
-      }
-
+      if (account) token.provider = account.provider;
       return token;
     },
 
@@ -95,13 +97,20 @@ export const authOptions = {
       const existingUser = await User.findOne({ email: user.email });
 
       if (account?.provider === "google") {
-        if (existingUser && existingUser.provider !== "google") {
-          existingUser.provider = "google";
-          existingUser.providerId = account.providerAccountId;
-          existingUser.isVerified = true;
-          await existingUser.save();
+        if (existingUser) {
+          if (existingUser.provider !== "google") {
+            existingUser.provider = "google";
+            existingUser.providerId = account.providerId;
+            existingUser.isVerified = true;
+            existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
+            await existingUser.save();
+          }
+          return profile?.email_verified && (profile?.email?.endsWith("@gmail.com") ?? false);
         }
-        return profile?.email_verified && profile?.email?.endsWith("@gmail.com");
+      } else if (account?.provider === "email") {
+        if (existingUser) {
+          return true;
+        }
       }
 
       return true;
@@ -113,3 +122,5 @@ export const authOptions = {
   },
   secret: process.env.AUTH_SECRET,
 };
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
