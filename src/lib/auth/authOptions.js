@@ -1,92 +1,80 @@
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
-import CredentialsProvider from "next-auth/providers/credentials";
-import User from "@/models/userSchema"
-import dbConnect from "@/lib/mongo";
-import bcrypt from "bcrypt";
+import EmailProvider from "next-auth/providers/email";
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
+import { connectMongoDB, clientPromise } from "@/lib/mongo";
+import User from "@/models/userSchema";
+import nodemailer from "nodemailer";
 
 export const authOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-    }),
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
       },
-      async authorize(credentials) {
-        try {
-          await dbConnect();
-          const user = await User.findOne({ email: credentials.email });
-          
-          if (!user) {
-            throw new Error("User not found");
-          }
-
-          if (!user.password) {
-            throw new Error("Please login with your social provider");
-          }
-
-          const isValid = await user.comparePassword(credentials.password);
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
-
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            role: user.role,
-            name: user.name,
-          };
-        } catch (error) {
-          throw new Error(error.message);
-        }
+    }),
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: Number(process.env.EMAIL_SERVER_PORT),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({ identifier: email, url, provider: { server, from } }) {
+        const transport = nodemailer.createTransport(server);
+        await transport.sendMail({
+          to: email,
+          from,
+          subject: "Sign in to Your Application",
+          text: `Please click the following link to sign in: ${url}`,
+          html: `<p>Please click the following link to sign in:</p><a href="${url}">Sign in</a>`,
+        });
       },
     }),
   ],
-
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "credentials") {
-        return true;
-      }
-
-      try {
-        await dbConnect();
-        const existingUser = await User.findOne({ email: user.email });
-
-        if (existingUser) {
-          return true;
-        }
-
-        await User.create({
-          email: user.email,
-          name: user.name,
-          provider: account.provider,
-          providerId: account.providerAccountId,
-        });
-
-        return true;
-      } catch (error) {
-        console.error("Error in signIn callback:", error);
-        return false;
-      }
-    },
-
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
+        await connectMongoDB();
+        const mongooseUser = await User.findOne({ email: user.email });
+
+        if (mongooseUser) {
+          token.id = mongooseUser._id.toString();
+          token.role = mongooseUser.role;
+          token.subscription = mongooseUser.subscription;
+        } else {
+          const newUser = new User({
+            name: user.name,
+            email: user.email,
+            provider: account?.provider || "email",
+            providerId: account?.providerAccountId,
+            isVerified: account?.provider === "google",
+            role: "guest",
+            subscription: "no",
+            profileImage: user.image,
+          });
+          await newUser.save();
+          token.id = newUser._id.toString();
+          token.role = newUser.role;
+          token.subscription = newUser.subscription;
+        }
       }
 
-      if (account?.provider) {
+      if (account) {
         token.provider = account.provider;
       }
 
@@ -94,19 +82,34 @@ export const authOptions = {
     },
 
     async session({ session, token }) {
-      if (session?.user) {
+      if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
-        session.user.provider = token.provider;
+        session.user.subscription = token.subscription;
       }
       return session;
     },
-  },
 
+    async signIn({ user, account, profile }) {
+      await connectMongoDB();
+      const existingUser = await User.findOne({ email: user.email });
+
+      if (account?.provider === "google") {
+        if (existingUser && existingUser.provider !== "google") {
+          existingUser.provider = "google";
+          existingUser.providerId = account.providerAccountId;
+          existingUser.isVerified = true;
+          await existingUser.save();
+        }
+        return profile?.email_verified && profile?.email?.endsWith("@gmail.com");
+      }
+
+      return true;
+    },
+  },
   pages: {
     signIn: "/auth/signin",
     error: "/auth/error",
   },
-
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
 };
