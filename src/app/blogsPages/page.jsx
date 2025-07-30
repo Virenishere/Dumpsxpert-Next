@@ -1,11 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import Link from "next/link";
 import BlogCard from "./BlogCard";
 
-const BASE_URL = "http://localhost:8000";
+// 🟢 Mock Data
+const mockCategories = [
+  { _id: "1", category: "Technology" },
+  { _id: "2", category: "Education" },
+  { _id: "3", category: "Career" },
+  { _id: "4", category: "Coding" },
+];
+
+const mockBlogs = Array.from({ length: 15 }, (_, i) => ({
+  _id: `${i + 1}`,
+  slug: `blog-${i + 1}`,
+  title: `Sample Blog Post ${i + 1}`,
+  metaDescription: `This is a short description for blog post ${i + 1}.`,
+  status: "publish",
+  category: mockCategories[i % mockCategories.length].category,
+  createdAt: new Date(Date.now() - i * 10000000).toISOString(),
+  imageUrl: "https://via.placeholder.com/600x400",
+}));
 
 const BlogPage = () => {
   const [categories, setCategories] = useState([]);
@@ -14,59 +30,33 @@ const BlogPage = () => {
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Load mock categories
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/blog-categories`);
-        const valid = res.data?.filter((c) => !!c.category);
-        setCategories(valid);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    };
-
-    fetchCategories();
+    setCategories(mockCategories);
   }, []);
 
+  // Load mock blogs
   useEffect(() => {
-    const fetchBlogs = async () => {
-      setLoading(true);
-      try {
-        const categoryQuery = selectedCategory
-          ? `&category=${selectedCategory.toLowerCase()}`
-          : "";
+    setLoading(true);
+    const allBlogs = mockBlogs;
 
-        const res = await axios.get(
-          `${BASE_URL}/api/blogs/all?page=1&limit=20${categoryQuery}`
-        );
-        const allBlogs = res.data?.data || [];
+    const publishedBlogs = allBlogs.filter((blog) => blog.status === "publish");
 
-        const publishedBlogs = allBlogs.filter(
-          (blog) => blog.status === "publish"
-        );
+    const filteredBlogs = selectedCategory
+      ? publishedBlogs.filter(
+          (b) =>
+            b.category?.toLowerCase() === selectedCategory.toLowerCase()
+        )
+      : publishedBlogs;
 
-        const filteredBlogs = selectedCategory
-          ? publishedBlogs.filter(
-              (b) =>
-                b.category?.toLowerCase() ===
-                selectedCategory.toLowerCase()
-            )
-          : publishedBlogs;
+    setBlogs(filteredBlogs);
 
-        setBlogs(filteredBlogs);
+    const recent = [...publishedBlogs]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 10);
 
-        const recent = [...publishedBlogs]
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 10);
-        setRecentPosts(recent);
-      } catch (err) {
-        console.error("Error fetching blogs:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBlogs();
+    setRecentPosts(recent);
+    setLoading(false);
   }, [selectedCategory]);
 
   return (
