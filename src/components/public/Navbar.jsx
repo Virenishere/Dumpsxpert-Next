@@ -11,7 +11,7 @@ const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
   { label: "Contact Us", path: "/contact" },
-  { label: "IT Dumps", path: "/itDumps" },
+  { label: "IT Dumps", path: "/itdumps" },
   { label: "Blogs", path: "/blogs" },
   { label: "Cart", path: "/cart" },
 ];
