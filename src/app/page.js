@@ -12,6 +12,7 @@ import ExamDumpsSlider from "@/landin page/ExamDumpsSlider";
 import UnlockGoals from "@/landin page/UnlockGoals";
 import GeneralFAQs from "@/landin page/GeneralFAQs";
 import AdminDashboard from "@/app/dashboard/admin/page.jsx"; // Adjust the import path as necessary
+import AdminLayout from "@/app/dashboard/admin/layout"; // Adjust the import path as necessary
 export const metadata = {
   title: "Dumpsxpert – #1 IT Exam Dumps Provider",
   description: "Pass your IT certifications in first attempt with trusted exam dumps, practice tests & PDF guides by Dumpsxpert.",
@@ -57,8 +58,9 @@ export default async function HomePage() {
 
   return (
     <div className="p-6">
-           < AdminDashboard/>
-
+ <AdminLayout>
+      <AdminDashboard />
+    </AdminLayout>
       {/* === Hero Section === */}
       <section className="w-full bg-white pt-24 px-4 sm:px-6 lg:px-20 flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
         <div className="w-full lg:w-1/2 mt-10 lg:mt-0">
