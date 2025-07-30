@@ -15,16 +15,15 @@ export default function SignIn() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.message || "Sign-in failed");
-        if (data.message.includes("not found")) {
+      if (result?.error) {
+        setError(result.error || "Sign-in failed");
+        if (result.error.includes("not found") || result.error.includes("not verified")) {
           router.push("/auth/signup");
         }
         return;
@@ -32,7 +31,8 @@ export default function SignIn() {
 
       router.push("/dashboard");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred during sign-in. Please try again.");
+      console.error("Sign-in error:", err);
     }
   };
 
@@ -43,7 +43,8 @@ export default function SignIn() {
         setError("OAuth sign-in failed");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred during OAuth sign-in. Please try again.");
+      console.error("OAuth sign-in error:", err);
     }
   };
 
