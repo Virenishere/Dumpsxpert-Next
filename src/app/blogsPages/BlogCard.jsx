@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const BlogCard = ({ title, description, date, imageUrl, slug }) => {
   return (
-    <Link href={`/blogs/${slug}`} className="block">
+    <Link href={`/blogsPages/blog`} className="block">
       <div className="bg-gray-100 h-full flex flex-col justify-between rounded-xl shadow-md p-4 hover:shadow-lg transition">
         {imageUrl && (
           <img
@@ -25,7 +25,7 @@ const BlogCard = ({ title, description, date, imageUrl, slug }) => {
         </p>
       </div>
     </Link>
-  );lon
+  );
 };
 
 export default BlogCard;

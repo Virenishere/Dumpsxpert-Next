@@ -462,7 +462,7 @@ export default function ProductDetailsPage() {
             <div
               key={p._id}
               className="min-w-[200px] bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md"
-              onClick={() => router.push(`/product/${p.slug}`)}
+              onClick={() => router.push(`product/`)}
             >
               <img
                 src={p.imageUrl}
