@@ -18,7 +18,7 @@ export default async function ITDumpsPage() {
   const dumpsData = await getDumpsData();
 
   return (
-    <div
+  <div
       className="relative min-h-screen w-full pt-34 pb-10 px-4 md:px-8"
       style={{
         backgroundImage: `url(${guarantee.src})`,
@@ -67,7 +67,7 @@ export default async function ITDumpsPage() {
           {dumpsData.map((item) => (
             <Link
               key={item._id}
-              href={`/itdumps/${item.name.toLowerCase()}`}
+              href={`/ItDumps/${item.name.toLowerCase()}`}
               className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all flex flex-col items-center text-center overflow-hidden w-[160px] sm:w-[170px] md:w-[180px]"
             >
               <div className="h-28 md:h-32 w-full relative">
