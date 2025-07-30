@@ -1,143 +1,103 @@
 "use client";
-
-import { signIn, useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { FcGoogle } from "react-icons/fc";
-import { HiOutlineMail } from "react-icons/hi";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session, status } = useSession();
-
-  const authError = searchParams.get("error");
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      switch (session.user.role) {
-        case "admin":
-          router.push("/dashboard/admin");
-          break;
-        case "student":
-          router.push("/dashboard/student");
-          break;
-        default:
-          router.push("/dashboard/guest");
-      }
-    }
-  }, [session, status, router]);
 
   const handleEmailSignIn = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
     try {
-      const result = await signIn("email", {
-        email,
-        redirect: false,
-        callbackUrl,
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        alert("Check your email for the sign-in link!");
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || "Sign-in failed");
+        if (data.message.includes("not found")) {
+          router.push("/auth/signup");
+        }
+        return;
       }
+
+      router.push("/dashboard");
     } catch (err) {
-      setError("Failed to send sign-in email. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      setError("An error occurred. Please try again.");
     }
   };
 
   const handleOAuthSignIn = async (provider) => {
     try {
-      await signIn(provider, { callbackUrl });
+      const result = await signIn(provider, { callbackUrl: "/dashboard" });
+      if (result?.error) {
+        setError("OAuth sign-in failed");
+      }
     } catch (err) {
-      setError(`Failed to sign in with ${provider}`);
-      console.error(err);
+      setError("An error occurred. Please try again.");
     }
   };
 
-  if (status === "loading") {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
   return (
-    <div className="min-h-screen flex items-center mt-12 justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
-          Login to DumpsXpert
-        </h2>
-
-        {(error || authError) && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-            {error ||
-              (authError === "Callback"
-                ? "Authentication failed. Please try again."
-                : authError === "OAuthAccountNotLinked"
-                ? "This email is registered with another provider. Try your original sign-in method."
-                : "An error occurred. Please try again.")}
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleEmailSignIn}>
+          <div className="mb-4">
+            <label className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
           </div>
-        )}
-
-        <form onSubmit={handleEmailSignIn} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <div className="relative">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Email"
-              />
-              <HiOutlineMail className="absolute top-2.5 left-3 text-gray-400 text-lg" />
-            </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
           </div>
-
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
           >
-            {loading ? "Loading..." : "Sign in with Email"}
+            Sign In
           </button>
         </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <div>
-          {/* comment */}
+        <div className="mt-4">
           <button
-            type="button"
             onClick={() => handleOAuthSignIn("google")}
-            className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 mb-2"
           >
-            <FcGoogle className="text-xl" />
-            <span className="ml-2">Google</span>
+            Sign In with Google
+          </button>
+          <button
+            onClick={() => handleOAuthSignIn("facebook")}
+            className="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-900"
+          >
+            Sign In with Facebook
           </button>
         </div>
-
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Don&apos;t have an account?{" "}
-          <Link href="/auth/signup" className="text-blue-600 hover:text-blue-700">
-            Sign up
+        <p className="mt-4 text-center">
+          Don’t have an account?{" "}
+          <Link href="/auth/signup" className="text-blue-500 hover:underline">
+            Sign Up
           </Link>
         </p>
       </div>

@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
-import instance  from '@/lib/axios';
-import useAuthStore from '@/store/useAuthStore';
+import { useSession } from 'next-auth/react';
+import instance from '@/lib/axios';
 
 export function useUser() {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { setUser: setAuthUser } = useAuthStore();
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (status === 'loading') return; // Wait for session to resolve
+      if (status === 'unauthenticated') {
+        setLoading(false);
+        return; // No session, no user
+      }
+
       try {
         const response = await instance.get('/api/user/me');
         setUser(response.data);
-        setAuthUser({
-          id: response.data._id,
-          email: response.data.email,
-          role: response.data.role,
-        });
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to fetch user data');
       } finally {
@@ -26,7 +27,7 @@ export function useUser() {
     };
 
     fetchUser();
-  }, [setAuthUser]);
+  }, [status]);
 
   const updateUser = async (data) => {
     try {
@@ -38,5 +39,5 @@ export function useUser() {
     }
   };
 
-  return { user, loading, error, updateUser };
+  return { user, loading, error, updateUser, session };
 }

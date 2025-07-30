@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth/authOptions";
 import User from "@/models/userSchema";
-import dbConnect from "@/lib/mongo";
+import { connectMongoDB } from "@/lib/mongo";
 
 export async function GET() {
   try {
@@ -15,7 +15,7 @@ export async function GET() {
       );
     }
 
-    await dbConnect();
+    await connectMongoDB();
 
     const user = await User.findById(session.user.id).select("-password");
 
@@ -47,10 +47,9 @@ export async function PUT(request) {
       );
     }
 
-    await dbConnect();
+    await connectMongoDB();
     const data = await request.json();
 
-    // Fields that can be updated
     const allowedUpdates = [
       "name",
       "phone",
@@ -58,12 +57,11 @@ export async function PUT(request) {
       "dob",
       "gender",
       "bio",
-      "profileImage"
+      "profileImage",
     ];
 
-    // Filter out any fields that aren't in allowedUpdates
     const updates = Object.keys(data)
-      .filter(key => allowedUpdates.includes(key))
+      .filter((key) => allowedUpdates.includes(key))
       .reduce((obj, key) => {
         obj[key] = data[key];
         return obj;
