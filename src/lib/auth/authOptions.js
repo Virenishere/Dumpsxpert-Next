@@ -70,7 +70,7 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -91,11 +91,9 @@ export const authOptions = {
         token.profileImage = user.profileImage;
         token.createdAt = user.createdAt;
       }
-
       if (account) {
         token.provider = account.provider;
       }
-
       return token;
     },
     async session({ session, token }) {
@@ -116,7 +114,6 @@ export const authOptions = {
         session.user.profileImage = token.profileImage;
         session.user.createdAt = token.createdAt;
       }
-
       return session;
     },
     async signIn({ user, account, profile }) {
@@ -125,17 +122,39 @@ export const authOptions = {
 
       if (account?.provider === "google" || account?.provider === "facebook") {
         if (existingUser) {
+          // Update existing user if signing in with a different provider
           if (existingUser.provider !== account.provider) {
             existingUser.provider = account.provider;
             existingUser.providerId = account.providerAccountId;
             existingUser.isVerified = true;
             existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
+            existingUser.profileImage = existingUser.profileImage || user.image || "";
             await existingUser.save();
           }
-          return (account.provider === "google" && profile?.email_verified && profile?.email?.endsWith("@gmail.com")) ||
-                 (account.provider === "facebook");
+          // Allow sign-in for verified Google accounts or any Facebook account
+          return (
+            (account.provider === "google" && profile?.email_verified && profile?.email?.endsWith("@gmail.com")) ||
+            (account.provider === "facebook")
+          );
+        } else {
+          // Create new user for OAuth sign-in
+          const newUser = new User({
+            email: user.email,
+            name: user.name || user.email.split("@")[0],
+            provider: account.provider,
+            providerId: account.providerAccountId,
+            isVerified: true,
+            role: "guest",
+            subscription: "no",
+            phone: "",
+            address: "",
+            bio: "",
+            profileImage: user.image || "",
+            createdAt: new Date(),
+          });
+          await newUser.save();
+          return true;
         }
-        return true;
       }
 
       return true; // Credentials provider handles validation

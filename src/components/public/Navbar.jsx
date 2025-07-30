@@ -13,7 +13,6 @@ const navlinks = [
   { label: "Contact Us", path: "/contact" },
   { label: "IT Dumps", path: "/itdumps" },
   { label: "Blogs", path: "/blogs" },
-  { label: "Cart", path: "/cart" },
 ];
 
 export default function Navbar() {
