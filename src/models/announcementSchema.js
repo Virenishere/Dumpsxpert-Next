@@ -6,17 +6,28 @@ const announcementSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    imageUrl: {
-      type: String,
-      required: true,
-    },
-    imagePublicId: {
-      type: String,
-      required: true,
-    },
     delay: {
       type: Number,
       default: 2.0,
+      min: 0,
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: {
+        validator: (v) => /^https?:\/\/.+\.(jpg|jpeg|png|gif)$/.test(v),
+        message: "Invalid image URL",
+      },
+    },
+    imagePublicId: {
+      type: String,
+      required: false,
+    },
+    lastUpdatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
     },
   },
   { timestamps: true }
