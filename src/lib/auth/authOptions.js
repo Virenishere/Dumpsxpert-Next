@@ -70,7 +70,7 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -80,7 +80,7 @@ export const authOptions = {
         token.email = user.email;
         token.role = user.role;
         token.subscription = user.subscription;
-        token.provider = user.provider;
+        token.provider = user.provider || account?.provider;
         token.providerId = user.providerId;
         token.isVerified = user.isVerified;
         token.phone = user.phone;
@@ -91,11 +91,9 @@ export const authOptions = {
         token.profileImage = user.profileImage;
         token.createdAt = user.createdAt;
       }
-
       if (account) {
         token.provider = account.provider;
       }
-
       return token;
     },
     async session({ session, token }) {
@@ -116,29 +114,62 @@ export const authOptions = {
         session.user.profileImage = token.profileImage;
         session.user.createdAt = token.createdAt;
       }
-
       return session;
     },
     async signIn({ user, account, profile }) {
-      await connectMongoDB();
-      const existingUser = await User.findOne({ email: user.email });
+      try {
+        await connectMongoDB();
+        console.log("Sign-in attempt:", {
+          user: { email: user.email, name: user.name, image: user.image },
+          account: { provider: account?.provider, providerAccountId: account?.providerAccountId },
+          profile,
+        });
 
-      if (account?.provider === "google" || account?.provider === "facebook") {
-        if (existingUser) {
-          if (existingUser.provider !== account.provider) {
-            existingUser.provider = account.provider;
-            existingUser.providerId = account.providerAccountId;
-            existingUser.isVerified = true;
-            existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
-            await existingUser.save();
+        let existingUser = await User.findOne({ email: user.email });
+        if (account?.provider === "google" || account?.provider === "facebook") {
+          if (existingUser) {
+            console.log("Existing user found:", existingUser._id.toString());
+            // Update provider details if needed
+            if (existingUser.provider !== account.provider) {
+              existingUser.provider = account.provider;
+              existingUser.providerId = account.providerId;
+              existingUser.isVerified = true;
+              existingUser.name = existingUser.name || user.name || user.email.split("@")[0];
+              existingUser.profileImage = existingUser.profileImage || user.image || "";
+              await existingUser.save();
+              console.log("Updated existing user:", existingUser._id.toString());
+            }
+            user.id = existingUser._id.toString();
+          } else {
+            console.log("Creating new user for:", user.email);
+            const newUser = new User({
+              email: user.email,
+              name: user.name || user.email.split("@")[0],
+              provider: account.provider,
+              providerId: account.providerAccountId,
+              isVerified: true,
+              role: "guest",
+              subscription: "no",
+              phone: "",
+              address: "",
+              bio: "",
+              profileImage: user.image || "",
+              createdAt: new Date(),
+            });
+            await newUser.save();
+            console.log("New user created:", newUser._id.toString());
+            user.id = newUser._id.toString();
           }
-          return (account.provider === "google" && profile?.email_verified && profile?.email?.endsWith("@gmail.com")) ||
-                 (account.provider === "facebook");
+          return (
+            (account.provider === "google" && profile?.email_verified && profile?.email?.endsWith("@gmail.com")) ||
+            (account.provider === "facebook")
+          );
         }
-        return true;
+        return true; // Credentials provider
+      } catch (error) {
+        console.error("Sign-in error:", error.message);
+        return false;
       }
-
-      return true; // Credentials provider handles validation
     },
   },
   pages: {

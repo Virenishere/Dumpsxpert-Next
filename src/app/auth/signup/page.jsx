@@ -40,7 +40,8 @@ export default function SignUp() {
 
       setStep(2);
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred while sending OTP. Please try again.");
+      console.error("Send OTP error:", err);
     }
   };
 
@@ -66,19 +67,22 @@ export default function SignUp() {
         return;
       }
 
-      const result = await signIn("email", {
+      // Attempt to sign in with credentials
+      const result = await signIn("credentials", {
         email,
+        password,
         redirect: false,
       });
 
-      if (!result.ok) {
-        setError("Sign-in after signup failed");
+      if (result?.error) {
+        setError(result.error || "Sign-in after signup failed");
         return;
       }
 
       router.push("/dashboard");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred during OTP verification. Please try again.");
+      console.error("Verify OTP error:", err);
     }
   };
 
@@ -89,7 +93,8 @@ export default function SignUp() {
         setError("OAuth sign-up failed");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("An error occurred during OAuth sign-up. Please try again.");
+      console.error("OAuth signup error:", err);
     }
   };
 
