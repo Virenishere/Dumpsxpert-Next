@@ -119,7 +119,7 @@ export default function GuestDashboard() {
           </Badge>
 
           <div className="flex gap-4 flex-wrap justify-center mt-4">
-            <Link href="/guest/edit-profile">
+            <Link href="/dashboard/guest/edit-profile">
               <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700">
                 <User className="mr-2 h-4 w-4" />
                 Edit Profile
