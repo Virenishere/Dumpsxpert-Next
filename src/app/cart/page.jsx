@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button"; // Correct shadcn/ui import
+import { Button } from "@/components/ui/button";
 import { instance } from "@/lib/axios";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "@/components/ui/sonner";
 import useCartStore from "@/store/useCartStore";
-import cartImg from "../../assets/landingassets/emptycart.webp"
+import cartImg from "../../assets/landingassets/emptycart.webp";
 
 const Cart = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -17,17 +17,24 @@ const Cart = () => {
   const [couponError, setCouponError] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplicable, setCouponApplicable] = useState(false);
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } =
-    useCartStore();
+
+  const cartItems = useCartStore((state) => state.cartItems);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const clearCart = useCartStore((state) => state.clearCart);
+
   const router = useRouter();
 
-  // Retrieve userId from localStorage or another source
   const userId =
     typeof window !== "undefined"
       ? localStorage.getItem("studentId") || null
       : null;
 
-  const subtotal = getCartTotal();
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
+    0
+  );
+
   const grandTotal = subtotal - discount;
 
   const handleDelete = (id, type) => {
@@ -161,7 +168,6 @@ const Cart = () => {
       </div>
 
       <div className="flex flex-col items-center lg:flex-row justify-between gap-6 w-full">
-        {/* Cart Items */}
         <div className="w-full lg:w-[65%]">
           {cartItems.length === 0 ? (
             <div className="flex flex-col items-center text-center space-y-4">
@@ -196,6 +202,9 @@ const Cart = () => {
                       <h4 className="text-lg font-semibold">
                         {item.title || "Unknown Product"}
                       </h4>
+                      <p className="text-sm text-gray-500 capitalize">
+                        {item.type || "Unknown"}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() =>
@@ -236,8 +245,7 @@ const Cart = () => {
             </div>
           )}
         </div>
-
-        {/* Order Summary */}
+       {/* Order Summary */}
         <div className="w-full lg:w-[35%] h-96 bg-gray-50 p-6 rounded-xl shadow-md border">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Order Summary
@@ -317,7 +325,7 @@ const Cart = () => {
               className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition"
             >
               <Image
-                src=""
+                src="https://via.placeholder.com/100"
                 alt="Razorpay"
                 width={80}
                 height={40}
@@ -379,7 +387,7 @@ const Cart = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
   );
 };
 

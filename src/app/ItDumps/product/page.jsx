@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FaCheckCircle, FaChevronRight, FaStar, FaUser } from "react-icons/fa";
+import useCartStore from "@/store/useCartStore";
+import toast from "react-hot-toast";
+
 
 // Mock Data
 const mockProducts = [
@@ -106,43 +109,7 @@ const mockReviews = [
 ];
 
 
-const handleAddToCart = (type = "regular") => {
-//   if (!product) return;
 
-//   setIsAdding(true); // Show loading state
-
-  const item = {
-    id: product._id,
-    slug: product.slug,
-    type,
-    imageUrl: product.imageUrl,
-    samplePdfUrl: product.samplePdfUrl,
-    mainPdfUrl: product.mainPdfUrl,
-  };
-
-  switch (type) {
-    case "regular":
-      item.title = `${product.title} [PDF]`;
-      item.price = product.priceInr || product.priceUsd || 0;
-      break;
-    case "online":
-      item.title = `${product.title} [Online Exam]`;
-      item.price = exams?.priceINR || exams?.priceUSD || 0;
-      break;
-    case "combo":
-      item.title = `${product.title} [Combo]`;
-      item.price = product.comboPriceInr || product.comboPriceUsd || 0;
-      break;
-    default:
-      item.title = product.title;
-      item.price = product.priceInr || product.priceUsd || 0;
-  }
-
-  dispatch(addToCart(item));
-  toast.success("Added to cart!");
-
-//   setTimeout(() => setIsAdding(false), 1000);
-};
 
 export default function ProductDetailsPage() {
   const { slug } = useParams();
@@ -158,6 +125,44 @@ export default function ProductDetailsPage() {
   const [avgRating, setAvgRating] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
+
+const handleAddToCart = (type = "regular") => {
+  // Create item base structure
+  let item = {
+    ...product,
+    type,
+        title:product.title, // Important!
+
+    imageUrl: product.imageUrl,
+    samplePdfUrl: product.samplePdfUrl,
+    mainPdfUrl: product.mainPdfUrl,
+  };
+
+  // Dynamically set title and price based on type
+  switch (type) {
+    case "regular":
+      item.title = `${product.title} [PDF]`;
+      item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
+      break;
+    case "online":
+      item.title = `${product.title} [Online Exam]`;
+      item.price = exams?.priceINR || exams?.priceUSD;
+      break;
+    case "combo":
+      item.title = `${product.title} [Combo]`;
+      item.price = product.comboPriceInr || product.comboPriceUsd;
+      break;
+    default:
+      item.title = product.title;
+      item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
+  }
+
+  // Add to cart using Zustand action
+  useCartStore.getState().addToCart(item);
+alert(`Added ${item.title} to cart!`);
+  // Show toast success message
+  toast.success("Added to cart!");
+};
 
   useEffect(() => {
     const found = mockProducts.find((p) => p.slug === slug);
@@ -480,59 +485,83 @@ export default function ProductDetailsPage() {
 }
 
 /* --- Subcomponents --- */
-function PriceBlock({
+
+
+const PriceBlock = ({
   title,
   priceInr,
   mrpInr,
   priceUsd,
   mrpUsd,
-  onSample,
-  actionLabel,
-  onAction,
-  calculateDiscount,
-}) {
+  showSample = false,
+  onSample = () => {},
+  actionLabel = "🛒 Add to Cart",
+  onAction = () => {},
+  calculateDiscount = (mrp, price) =>
+    mrp && price ? Math.round(((mrp - price) / mrp) * 100) : 0,
+}) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center mt-4">
       <div>
         <p className="font-semibold">{title}</p>
+
+        {/* INR Pricing */}
         <p className="text-blue-600 font-bold">
-          ₹{priceInr}{" "}
-          <span className="text-red-500 line-through">₹{mrpInr}</span>{" "}
-          <span className="text-gray-600 text-sm">
-            ({calculateDiscount(mrpInr, priceInr)}% off)
-          </span>
+          ₹{priceInr ?? "N/A"}
+          {mrpInr && (
+            <>
+              <span className="text-red-500 line-through ml-2">
+                ₹{mrpInr}
+              </span>
+              <span className="text-gray-600 text-sm ml-1">
+                ({calculateDiscount(mrpInr, priceInr)}% off)
+              </span>
+            </>
+          )}
         </p>
+
+        {/* USD Pricing */}
         <p>
-          ${priceUsd}{" "}
-          <span className="text-red-400 line-through">${mrpUsd}</span>{" "}
-          <span className="text-gray-400 text-sm">
-            ({calculateDiscount(mrpUsd, priceUsd)}% off)
+          <span className="text-blue-400 font-bold">
+            ${priceUsd ?? "N/A"}
           </span>
+          {mrpUsd && (
+            <>
+              <span className="text-red-400 font-bold line-through ml-2">
+                ${mrpUsd}
+              </span>
+              <span className="text-gray-400 font-bold text-sm ml-1">
+                ({calculateDiscount(mrpUsd, priceUsd)}% off)
+              </span>
+            </>
+          )}
         </p>
       </div>
-     <div className="flex items-center gap-2">
-  {onSample && (
-    <button
-      onClick={() => onSample(product)}
-      className="bg-gray-800 text-white px-3 py-1 rounded text-sm"
-    >
-      Download Sample
-    </button>
-  )}
 
-  {actionLabel && (
-    <button
-      onClick={() => handleAddToCart("regular", product, exams)}
-      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-    >
-      {actionLabel}
-    </button>
-  )}
-</div>
+      <div className="flex items-center gap-2">
+        {showSample && (
+          <button
+            onClick={onSample}
+            className="bg-gray-800 text-white px-3 py-1 rounded text-sm"
+          >
+            Download Sample
+          </button>
+        )}
 
+        {onAction && (
+          <button
+            onClick={onAction}
+            className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold px-4 py-2 rounded"
+          >
+            {actionLabel}
+          </button>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+
 
 function ReviewsSection({
   reviews,

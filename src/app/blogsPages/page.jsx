@@ -133,7 +133,7 @@ const BlogPage = () => {
               {recentPosts.map((post) => (
                 <li key={post._id}>
                   <Link
-                    href={`/blogs/${post.slug}`}
+                    href={`/blogs/${post.slug.toLowerCase()}`}
                     className="text-blue-600 hover:underline block"
                   >
                     {post.title}
