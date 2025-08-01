@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Breadcrumbs from "@/components/public/Breadcrumbs";
 
 // Simulated server data (with duplicates — we'll dedupe)
 const allProducts = [
@@ -84,7 +85,11 @@ export default function CategoryPage({ params }) {
   }, [uniqueProducts, searchTerm]);
 
   return (
-    <div className="min-h-screen pt-32 pb-12 px-4 md:px-10 bg-gray-100">
+    <div className="min-h-screen pt-28 pb-12 px-4 md:px-10 bg-gray-100">
+      {/* Breadcrumbs */}
+      <div className="max-w-5xl mx-auto mb-6">
+      <Breadcrumbs/>
+      </div>
       <div className="w-full max-w-5xl mx-auto">
         {/* Page Heading */}
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-800 mb-4">
