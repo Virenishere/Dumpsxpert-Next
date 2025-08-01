@@ -170,7 +170,7 @@ export default function CategoryPage({ params }) {
             {/* Products Card View (Mobile) */}
             <div className="md:hidden flex flex-col items-center gap-6 mt-6">
               {filteredProducts.map((product) => (
-                <div
+                  <div
                   key={product._id}
                   className="relative w-full max-w-sm bg-white rounded-xl shadow border border-gray-200 p-5"
                 >

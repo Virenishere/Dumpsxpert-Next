@@ -3,9 +3,7 @@ import { Inter } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/public/Navbar";
 import Footer from "@/components/public/Footer";
-import Providers from "@/components/Providers"
-
-
+import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({
@@ -24,14 +22,18 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
+        <Navbar />
+        <div className="min-h-screen flex flex-col">
+          <Toaster position="top-right" richColors />
 
+          {children}
+        </div>
+        <Footer />
           <Navbar />
           <div className="min-h-screen flex flex-col">
           {children }
           </div>
           <Footer/>
-        </Providers>
             
       
       </body>
