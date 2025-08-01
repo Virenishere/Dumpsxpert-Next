@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Breadcrumbs from "@/components/public/Breadcrumbs";
 
-// Simulated server data (with duplicates — we'll dedupe)
+// Simulated server data (deduped by slug)
 const allProducts = [
   {
     _id: "1",
@@ -40,16 +40,16 @@ const allProducts = [
     sapExamCode: "AWS-SA-01",
     dumpsPriceInr: 2199,
     dumpsPriceUsd: 28,
-    slug: "aws-solutions-architect",
+    slug: "aws-solutions-architect-01",
   },
   {
-    _id: "3",
+    _id: "4",
     category: "AWS",
     title: "AWS Solutions Architect",
-    sapExamCode: "AWS-SA-01",
-    dumpsPriceInr: 2199,
-    dumpsPriceUsd: 28,
-    slug: "aws-solutions-architect",
+    sapExamCode: "AWS-SA-02",
+    dumpsPriceInr: 3199,
+    dumpsPriceUsd: 38,
+    slug: "aws-solutions-architect-02",
   },
 ];
 
@@ -65,7 +65,7 @@ export default function CategoryPage({ params }) {
     );
   }, [coursename]);
 
-  // Deduplicate by `slug` (or `_id`)
+  // Deduplicate by `slug`
   const uniqueProducts = useMemo(() => {
     const seen = new Set();
     return categoryProducts.filter((p) => {
@@ -100,7 +100,7 @@ export default function CategoryPage({ params }) {
         <p className="text-gray-600 text-base mb-3">
           {showFullText
             ? `DumpsExpert provides the most up-to-date ${coursename} certification dumps. All exam questions are based on the latest formats, helping you practice and pass with confidence.`
-            : ` ${coursename} certification can boost your IT or business career globally. DumpsExpert gives you the latest questions & answers PDF to pass your exam easily and confidently...`}
+            : `${coursename} certification can boost your IT or business career globally. DumpsExpert gives you the latest questions & answers PDF to pass your exam easily and confidently...`}
         </p>
         <button
           className="text-blue-600 text-sm mb-6 hover:underline"
@@ -111,7 +111,7 @@ export default function CategoryPage({ params }) {
 
         {/* Search + Results Counter */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-600">
             Showing {filteredProducts.length} results
           </p>
           <div className="flex items-center border border-gray-300 rounded-md bg-white shadow-sm w-full sm:w-[400px]">
@@ -121,6 +121,7 @@ export default function CategoryPage({ params }) {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 text-sm focus:outline-none"
+              aria-label="Search exam code or name"
             />
             <span className="px-4 text-gray-500">🔍</span>
           </div>
@@ -159,9 +160,9 @@ export default function CategoryPage({ params }) {
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          // href={`product/`}
-                          href={`product/${product.slug}`}
+                          href={`/itdumps/${coursename}/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
+                          aria-label={`View details for ${product.title}`}
                         >
                           See Details
                         </Link>
@@ -175,7 +176,7 @@ export default function CategoryPage({ params }) {
             {/* Products Card View (Mobile) */}
             <div className="md:hidden flex flex-col items-center gap-6 mt-6">
               {filteredProducts.map((product) => (
-                  <div
+                <div
                   key={product._id}
                   className="relative w-full max-w-sm bg-white rounded-xl shadow border border-gray-200 p-5"
                 >
@@ -197,8 +198,9 @@ export default function CategoryPage({ params }) {
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <Link
-                      href={`/product/${product.slug}`}
+                      href={`/itdumps/${coursename}/${product.slug}`}
                       className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-sm text-center py-2 rounded-md shadow"
+                      aria-label={`View details for ${product.title}`}
                     >
                       See Details
                     </Link>

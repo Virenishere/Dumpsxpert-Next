@@ -202,11 +202,7 @@ export default function ProductDetailsPage() {
   if (!product) return <div className="text-center py-20">Loading...</div>;
 
   return (
-    <div className="min-h-screen mt-20 bg-white py-10 px-4 md:px-20 text-gray-800">
-      <div className="max-w-5xl mx-auto mb-6">
-        <Breadcrumbs />
-      </div>
-
+    <div className="min-h-screen mt-32 bg-white py-10 px-4 md:px-20 text-gray-800">
       <div className="flex flex-col md:flex-row gap-10">
         {/* Left Column - Image & Features */}
         <div className="md:w-[40%]">
@@ -509,7 +505,9 @@ const PriceBlock = ({
           ₹{priceInr ?? "N/A"}
           {mrpInr && (
             <>
-              <span className="text-red-500 line-through ml-2">₹{mrpInr}</span>
+              <span className="text-red-500 line-through ml-2">
+                ₹{mrpInr}
+              </span>
               <span className="text-gray-600 text-sm ml-1">
                 ({calculateDiscount(mrpInr, priceInr)}% off)
               </span>
@@ -519,7 +517,9 @@ const PriceBlock = ({
 
         {/* USD Pricing */}
         <p>
-          <span className="text-blue-400 font-bold">${priceUsd ?? "N/A"}</span>
+          <span className="text-blue-400 font-bold">
+            ${priceUsd ?? "N/A"}
+          </span>
           {mrpUsd && (
             <>
               <span className="text-red-400 font-bold line-through ml-2">

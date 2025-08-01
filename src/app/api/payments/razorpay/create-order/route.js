@@ -1,24 +1,48 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
+// Initialize Razorpay instance once
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 export async function POST(request) {
   try {
-    const { amount, currency } = await request.json();
+    const body = await request.json();
+    const amount = Number(body.amount);
+    const currency = body.currency || 'INR';
+
+    // Input validation
+    if (!amount || amount <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid or missing amount. Must be a number greater than 0.' },
+        { status: 400 }
+      );
+    }
+
     const options = {
-      amount: Math.round(amount * 100),
-      currency: currency || "INR",
-      receipt: `order_${Date.now()}`
+      amount: Math.round(amount * 100), // Convert to paise
+      currency,
+      receipt: `receipt_order_${Date.now()}`,
+      payment_capture: 1,
     };
 
     const order = await razorpay.orders.create(options);
-    return NextResponse.json(order);
+
+    return NextResponse.json({
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      receipt: order.receipt,
+      status: order.status,
+    }, { status: 200 });
+
   } catch (error) {
-    console.error('Razorpay order creation failed:', error);
-    return NextResponse.json({ error: 'Payment initiation failed' }, { status: 500 });
+    console.error('[RAZORPAY_ORDER_ERROR]', error);
+    return NextResponse.json(
+      { error: 'Unable to create order. Please try again later.' },
+      { status: 500 }
+    );
   }
 }
