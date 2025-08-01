@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
 
+// Remove existing model if it exists
+if (mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
+
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     unique: true,
-    // Remove required: true since it's auto-generated
-    sparse: true // This allows null values during document creation
+    sparse: true
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -32,7 +36,7 @@ const orderSchema = new mongoose.Schema({
     samplePdfUrl: String,
     mainPdfUrl: String,
     slug: String
-}],
+  }],
   totalAmount: {
     type: Number,
     required: true
@@ -62,7 +66,6 @@ const orderSchema = new mongoose.Schema({
   }
 });
 
-// Modify the pre-save hook to be more robust
 orderSchema.pre('save', async function(next) {
   try {
     if (!this.orderNumber) {
@@ -71,7 +74,6 @@ orderSchema.pre('save', async function(next) {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
 
-      // Find the latest order number for today
       const latestOrder = await this.constructor.findOne(
         { orderNumber: new RegExp(`^${year}${month}${day}`) },
         { orderNumber: 1 },
@@ -92,4 +94,4 @@ orderSchema.pre('save', async function(next) {
   }
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

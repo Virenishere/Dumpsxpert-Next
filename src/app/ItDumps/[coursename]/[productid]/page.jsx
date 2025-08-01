@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FaCheckCircle, FaChevronRight, FaStar, FaUser } from "react-icons/fa";
 import useCartStore from "@/store/useCartStore";
-import toast from "react-hot-toast";
-
+import { Toaster, toast } from "sonner";
 
 // Mock Data
 const mockProducts = [
@@ -108,9 +107,6 @@ const mockReviews = [
   },
 ];
 
-
-
-
 export default function ProductDetailsPage() {
   const { slug } = useParams();
   const router = useRouter();
@@ -126,43 +122,42 @@ export default function ProductDetailsPage() {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
 
-const handleAddToCart = (type = "regular") => {
-  // Create item base structure
-  let item = {
-    ...product,
-    type,
-        title:product.title, // Important!
+  const handleAddToCart = (type = "regular") => {
+    // Create item base structure
+    let item = {
+      ...product,
+      type,
+      title: product.title, // Important!
+      imageUrl: product.imageUrl,
+      samplePdfUrl: product.samplePdfUrl,
+      mainPdfUrl: product.mainPdfUrl,
+    };
 
-    imageUrl: product.imageUrl,
-    samplePdfUrl: product.samplePdfUrl,
-    mainPdfUrl: product.mainPdfUrl,
+    // Dynamically set title and price based on type
+    switch (type) {
+      case "regular":
+        item.title = `${product.title} [PDF]`;
+        item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
+        break;
+      case "online":
+        item.title = `${product.title} [Online Exam]`;
+        item.price = exams?.priceINR || exams?.priceUSD;
+        break;
+      case "combo":
+        item.title = `${product.title} [Combo]`;
+        item.price = product.comboPriceInr || product.comboPriceUsd;
+        break;
+      default:
+        item.title = product.title;
+        item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
+    }
+
+    // Add to cart using Zustand action
+    useCartStore.getState().addToCart(item);
+
+    // Show toast success message using sonner
+    toast.success(`Added ${item.title} to cart!`);
   };
-
-  // Dynamically set title and price based on type
-  switch (type) {
-    case "regular":
-      item.title = `${product.title} [PDF]`;
-      item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
-      break;
-    case "online":
-      item.title = `${product.title} [Online Exam]`;
-      item.price = exams?.priceINR || exams?.priceUSD;
-      break;
-    case "combo":
-      item.title = `${product.title} [Combo]`;
-      item.price = product.comboPriceInr || product.comboPriceUsd;
-      break;
-    default:
-      item.title = product.title;
-      item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
-  }
-
-  // Add to cart using Zustand action
-  useCartStore.getState().addToCart(item);
-alert(`Added ${item.title} to cart!`);
-  // Show toast success message
-  toast.success("Added to cart!");
-};
 
   useEffect(() => {
     const found = mockProducts.find((p) => p.slug === slug);
@@ -235,9 +230,7 @@ alert(`Added ${item.title} to cart!`);
         </div>
 
         {/* Right Column - Product Details */}
-             {/* Right Column - Product Details */}
-       
-   <div className="md:w-[60%] space-y-3">
+        <div className="md:w-[60%] space-y-3">
           <h1 className="text-3xl font-bold">{product.title}</h1>
           <p className="text-sm">
             Exam Code: <strong>{product.sapExamCode}</strong>
@@ -480,12 +473,14 @@ alert(`Added ${item.title} to cart!`);
           ))}
         </div>
       </div>
+
+      {/* Toast container - Place this at the root of your component tree */}
+      <Toaster />
     </div>
   );
 }
 
 /* --- Subcomponents --- */
-
 
 const PriceBlock = ({
   title,
@@ -560,8 +555,6 @@ const PriceBlock = ({
     </div>
   );
 };
-
-
 
 function ReviewsSection({
   reviews,

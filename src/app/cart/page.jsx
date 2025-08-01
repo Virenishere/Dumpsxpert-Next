@@ -3,20 +3,22 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { instance } from "@/lib/axios";
-import { PayPalButtons } from "@paypal/react-paypal-js";
+import instance from "@/lib/axios";
 import { useRouter } from "next/navigation";
-import { Toaster, toast } from "@/components/ui/sonner";
+import { Toaster, toast } from "sonner";
 import useCartStore from "@/store/useCartStore";
 import cartImg from "../../assets/landingassets/emptycart.webp";
+import { useSession } from "next-auth/react";
 
 const Cart = () => {
+  const { data: session, status } = useSession();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showPayPal, setShowPayPal] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplicable, setCouponApplicable] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [userId, setUserId] = useState(null); // State for userId from /api/user/me
 
   const cartItems = useCartStore((state) => state.cartItems);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -25,10 +27,39 @@ const Cart = () => {
 
   const router = useRouter();
 
-  const userId =
-    typeof window !== "undefined"
-      ? localStorage.getItem("studentId") || null
-      : null;
+  // Fetch userId from /api/user/me
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (status === "authenticated") {
+        try {
+          const response = await instance.get("/api/user/me");
+          setUserId(response.data.id);
+          console.log("Fetched userId from /api/user/me:", response.data.id);
+        } catch (error) {
+          console.error("Failed to fetch userId:", error);
+          toast.error("Failed to fetch user details. Please try again.");
+        }
+      }
+    };
+    fetchUserId();
+  }, [status]);
+
+  // Load Razorpay SDK
+  useEffect(() => {
+    setIsMounted(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  // Debug Axios instance
+  useEffect(() => {
+    console.log("Axios instance:", instance);
+  }, []);
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
@@ -39,10 +70,12 @@ const Cart = () => {
 
   const handleDelete = (id, type) => {
     removeFromCart(id, type);
+    toast.success("Item removed from cart");
   };
 
   const handleQuantityChange = (id, type, operation) => {
     updateQuantity(id, type, operation);
+    toast.success(`Quantity updated for ${type}`);
   };
 
   const handleCoupon = async () => {
@@ -53,6 +86,10 @@ const Cart = () => {
     }
 
     try {
+      if (!instance || typeof instance.post !== "function") {
+        throw new Error("Axios instance is not initialized");
+      }
+
       const response = await instance.post("/api/coupons/validate", {
         code: couponCode,
       });
@@ -73,12 +110,37 @@ const Cart = () => {
   };
 
   const handleRazorpayPayment = async () => {
+    if (status === "unauthenticated" || !userId) {
+      toast.error("Please log in to proceed with payment");
+      router.push("/auth/signin");
+      return;
+    }
+
+    if (!window.Razorpay) {
+      toast.error("Razorpay SDK failed to load. Please try again later.");
+      return;
+    }
+
+    if (grandTotal <= 0) {
+      toast.error("Cart total must be greater than zero");
+      return;
+    }
+
     try {
+      if (!instance || typeof instance.post !== "function") {
+        throw new Error("Axios instance is not initialized");
+      }
+
+      console.log("Initiating Razorpay order creation:", { amount: grandTotal });
       const orderData = {
         amount: grandTotal,
         currency: "INR",
       };
-      const response = await instance.post("/api/razorpay/create-order", orderData);
+      const response = await instance.post("/api/payments/razorpay/create-order", orderData);
+      if (!response.data?.id) {
+        throw new Error("Failed to create Razorpay order");
+      }
+
       const { id, amount, currency } = response.data;
 
       const options = {
@@ -90,8 +152,10 @@ const Cart = () => {
         description: "Purchase Exam Dumps",
         handler: async (razorpayResponse) => {
           try {
+            console.log("Verifying Razorpay payment:", razorpayResponse);
+            console.log("User ID sent to verify:", userId);
             const paymentVerification = await instance.post(
-              "/api/razorpay/verify-payment",
+              "/api/payments/razorpay/verify",
               {
                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                 razorpay_order_id: razorpayResponse.razorpay_order_id,
@@ -102,7 +166,8 @@ const Cart = () => {
             );
 
             if (paymentVerification.data.success) {
-              await instance.post("/api/orders", {
+              console.log("Creating order with:", { userId, items: cartItems, totalAmount: grandTotal });
+              await instance.post("/api/order", {
                 userId,
                 items: cartItems,
                 totalAmount: grandTotal,
@@ -113,56 +178,52 @@ const Cart = () => {
               clearCart();
               router.push("/student/dashboard");
               toast.success("Payment successful! Redirecting to dashboard...");
+            } else {
+              toast.error(paymentVerification.data.error || "Payment verification failed");
             }
           } catch (error) {
-            console.error("Verification failed:", error);
-            toast.error("Payment verification failed.");
+            console.error("Payment verification error:", {
+              message: error.message,
+              stack: error.stack,
+              response: error.response?.data,
+            });
+            toast.error(error.response?.data?.error || "Payment verification failed");
           }
         },
         theme: {
           color: "#3B82F6",
         },
       };
+
+      console.log("Opening Razorpay checkout with options:", options);
       const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (response) => {
+        console.error("Razorpay payment failed:", response.error);
+        toast.error(response.error?.description || "Payment failed");
+      });
       rzp.open();
       setShowPaymentModal(false);
     } catch (error) {
-      console.error("Payment initiation failed:", error);
-      toast.error("Payment initiation failed");
-    }
-  };
-
-  const handlePayPalPayment = async (data, actions) => {
-    try {
-      const details = await actions.order.capture();
-      const paymentResponse = await instance.post("/api/paypal/verify-payment", {
-        orderId: data.orderID,
-        amount: grandTotal,
-        userId: userId,
+      console.error("Payment initiation failed:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data,
       });
-
-      if (paymentResponse.data.success) {
-        await instance.post("/api/orders", {
-          userId,
-          items: cartItems,
-          totalAmount: grandTotal,
-          paymentMethod: "paypal",
-          paymentId: paymentResponse.data.paymentId,
-        });
-
-        toast.success(`Payment completed by ${details.payer.name.given_name}`);
-        clearCart();
-        router.push("/student/dashboard");
-      }
-    } catch (error) {
-      console.error("PayPal Error:", error);
-      toast.error("Payment failed");
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to initiate payment. Please check if the server is running and try again.";
+      toast.error(errorMessage);
     }
   };
+
+  if (!isMounted) {
+    return <div className="text-center py-20">Loading...</div>;
+  }
 
   return (
     <div className="min-h-[80vh] bg-[#f9f9f9] px-4 py-10">
-      <Toaster />
+      <Toaster richColors position="top-right" />
       <div className="flex justify-center mt-16 mb-4">
         <h2 className="text-4xl font-bold text-gray-800">Your Cart</h2>
       </div>
@@ -182,6 +243,13 @@ const Cart = () => {
               <p className="text-gray-600 text-lg">
                 Your cart is empty. Add items to your cart to proceed.
               </p>
+              <Button
+                onClick={() => router.push("/itdumps")}
+                variant="default"
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                Shop Now
+              </Button>
             </div>
           ) : (
             <div className="space-y-4 w-full max-h-[565px] overflow-y-auto pr-2">
@@ -210,7 +278,7 @@ const Cart = () => {
                           onClick={() =>
                             handleQuantityChange(item._id, item.type, "dec")
                           }
-                          className="px-3 py-1 bg-gray-200 rounded"
+                          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
                           disabled={item.quantity <= 1}
                         >
                           −
@@ -245,7 +313,6 @@ const Cart = () => {
             </div>
           )}
         </div>
-       {/* Order Summary */}
         <div className="w-full lg:w-[35%] h-96 bg-gray-50 p-6 rounded-xl shadow-md border">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Order Summary
@@ -302,7 +369,7 @@ const Cart = () => {
             <div className="mt-6">
               <Button
                 variant="default"
-                className="w-full"
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
                 onClick={() => setShowPaymentModal(true)}
               >
                 Continue to Payment
@@ -312,7 +379,6 @@ const Cart = () => {
         </div>
       </div>
 
-      {/* Payment Gateway Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 backdrop-blur-sm bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md space-y-4 shadow-xl">
@@ -334,52 +400,8 @@ const Cart = () => {
               Pay with Razorpay
             </button>
 
-            {!showPayPal && (
-              <button
-                onClick={() => setShowPayPal(true)}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg shadow transition"
-              >
-                <Image
-                  src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
-                  alt="PayPal"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                />
-                Pay with PayPal
-              </button>
-            )}
-
-            {showPayPal && (
-              <div className="mt-4">
-                <PayPalButtons
-                  style={{ layout: "vertical" }}
-                  createOrder={(data, actions) => {
-                    return actions.order.create({
-                      purchase_units: [
-                        {
-                          amount: {
-                            value: (grandTotal / 83).toFixed(2), // Convert INR to USD
-                          },
-                        },
-                      ],
-                    });
-                  }}
-                  onApprove={handlePayPalPayment}
-                  onError={(err) => {
-                    console.error("PayPal Error:", err);
-                    toast.error("Payment failed");
-                  }}
-                />
-              </div>
-            )}
-
             <button
-              onClick={() => {
-                setShowPaymentModal(false);
-                setShowPayPal(false);
-                router.push("/cart");
-              }}
+              onClick={() => setShowPaymentModal(false)}
               className="block mx-auto mt-2 text-sm text-gray-500 hover:underline"
             >
               Cancel
@@ -387,7 +409,7 @@ const Cart = () => {
           </div>
         </div>
       )}
-      </div>
+    </div>
   );
 };
 

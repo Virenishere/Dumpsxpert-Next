@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const paymentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   amount: {
@@ -13,11 +13,11 @@ const paymentSchema = new mongoose.Schema({
   currency: {
     type: String,
     required: true,
-    default: "INR",
+    default: 'INR',
   },
   paymentMethod: {
     type: String,
-    enum: ["paypal", "razorpay"],
+    enum: ['paypal', 'razorpay'],
     required: true,
   },
   paymentId: {
@@ -25,13 +25,13 @@ const paymentSchema = new mongoose.Schema({
     required: true,
   },
   orderId: {
-    type: String, // Add orderId field for Razorpay
-    required: false, // Optional, as PayPal may not use it
+    type: String,
+    required: false,
   },
   status: {
     type: String,
-    enum: ["pending", "completed", "failed"],
-    default: "pending",
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending',
   },
   createdAt: {
     type: Date,
@@ -39,4 +39,5 @@ const paymentSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Payment", paymentSchema);
+// Prevent OverwriteModelError by checking if the model is already defined
+module.exports = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
