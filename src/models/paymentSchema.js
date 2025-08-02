@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 
+if (mongoose.models.Payment) {
+  delete mongoose.models.Payment;
+}
+
 const paymentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'UserInfo',
     required: true,
   },
   amount: {
@@ -39,5 +43,4 @@ const paymentSchema = new mongoose.Schema({
   },
 });
 
-// Prevent OverwriteModelError by checking if the model is already defined
-module.exports = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
+module.exports = mongoose.models.Payment || mongoose.model('Payment', paymentSchema, 'payments');

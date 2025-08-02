@@ -5,6 +5,8 @@ export async function middleware(request) {
   const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
 
+  console.log('Middleware token:', token); // Add this for debugging
+
   // Public routes
   if (
     pathname.startsWith("/auth") ||

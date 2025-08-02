@@ -94,6 +94,12 @@ export default function GuestDashboard() {
     );
   }
 
+  // Determine profile image: prioritize session.user.image (Google) over userData.profileImage
+  const profileImage =
+    session?.user?.provider === "google" && session?.user?.image
+      ? session.user.image
+      : userData.profileImage || "https://via.placeholder.com/60";
+
   return (
     <div className="p-6 min-h-screen bg-gray-50 text-gray-900 font-sans">
       <h1 className="text-3xl font-extrabold mb-6 flex items-center gap-3">
@@ -109,7 +115,7 @@ export default function GuestDashboard() {
         </CardHeader>
         <CardContent className="flex flex-col items-center text-center">
           <Avatar className="h-24 w-24 mb-4">
-            <AvatarImage src={userData.profileImage || "https://via.placeholder.com/60"} alt="Profile" />
+            <AvatarImage src={profileImage} alt={`${userData.name}'s profile`} />
             <AvatarFallback>{userData.name?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
           <h3 className="font-bold text-xl mb-1">{userData.name || "User"}</h3>

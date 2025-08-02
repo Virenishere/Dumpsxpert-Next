@@ -79,7 +79,12 @@ export default function SignUp() {
         return;
       }
 
-      router.push("/dashboard");
+      // Use the redirect path from the API response (role/subscription aware)
+      if (data.redirect) {
+        router.push(data.redirect);
+      } else {
+        router.push("/dashboard/guest");
+      }
     } catch (err) {
       setError("An error occurred during OTP verification. Please try again.");
       console.error("Verify OTP error:", err);

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Remove existing model if it exists
 if (mongoose.models.Order) {
   delete mongoose.models.Order;
 }
@@ -13,7 +12,7 @@ const orderSchema = new mongoose.Schema({
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
+    ref: 'UserInfo',
     required: true 
   },
   courseDetails: [{
@@ -94,4 +93,4 @@ orderSchema.pre('save', async function(next) {
   }
 });
 
-module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);
+module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema, 'orders');
