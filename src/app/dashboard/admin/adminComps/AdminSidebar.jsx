@@ -84,58 +84,103 @@ const sidebarItems = [
         label: "Web Customization",
         to: "#",
         children: [
-          { label: "Basic Information", to: "/dashboard/admin/adminPages/BasicInformation" },
-          { label: "Menu Builder", to: "/dashboard/admin/adminPages/MenuBuilder" },
-          { label: "Social Links", to: "/dashboard/admin/adminPages/social-links" },
-          
-           
-          { label: "SEO Meta Info", to: "/dashboard/admin/adminPages/seo/meta-info" },
-           { label: "SEO Site Map", to: "/dashboard/admin/adminPages/seo/site-map" },
-            
-          
-          { label: "Permalink", to: "/dashboard/admin/adminPages/permalink" },
-          { label: "Maintenance Mode", to: "/dashboard/admin/adminPages/maintenance" },
-          { label: "Announcement", to: "/dashboard/admin/adminPages/announcement" },
+          {
+            label: "Basic Information",
+            to: "/dashboard/admin/adminPages/BasicInformation",
+          },
+          {
+            label: "Menu Builder",
+            to: "/dashboard/admin/adminPages/MenuBuilder",
+          },
+          {
+            label: "Social Links",
+            to: "/dashboard/admin/adminPages/SocialLinks",
+          },
+
+          { label: "SEO Meta Info", to: "/dashboard/admin/adminPages/SEOMeta" },
+          { label: "SEO Site Map", to: "/dashboard/admin/adminPages/SEOSiteMap" },
+
+          { label: "Permalink", to: "/dashboard/admin/adminPages/Permalink" },
+          {
+            label: "Maintenance Mode",
+            to: "/dashboard/admin/adminPages/MaintenanceMode",
+          },
+          {
+            label: "Announcement",
+            to: "/dashboard/admin/adminPages/Announcement",
+          },
         ],
       },
       {
         label: "Products",
         to: "#",
         children: [
-          { label: "Product Categories", to: "/dashboard/admin/adminPages/products/categories" },
-          { label: "Product List", to: "/dashboard/admin/adminPages/products/list" },
-          { label: "Product Reviews", to: "/dashboard/admin/adminPages/products/reviews" },
+          {
+            label: "Product Categories",
+            to: "/dashboard/admin/product/categories",
+          },
+          {
+            label: "Product List",
+            to: "/dashboard/admin/product/list",
+          },
+          {
+            label: "Product Reviews",
+            to: "/dashboard/admin/product/reviews",
+          },
         ],
       },
       {
         label: "Coupons",
         to: "#",
-        children: [{ label: "Coupon List", to: "/dashboard/admin/adminPages/coupons/list" }],
+        children: [
+          {
+            label: "Coupon List",
+            to: "/dashboard/admin/coupons/list",
+          },
+      
+        ],
       },
       {
         label: "Orders",
         to: "#",
         children: [
-          { label: "All Orders", to: "/dashboard/admin/adminPages/orders/all" },
-          { label: "Pending Orders", to: "/dashboard/admin/adminPages/orders/pending" },
-          { label: "Completed Orders", to: "/dashboard/admin/adminPages/orders/completed" },
-          { label: "Rejected Orders", to: "/dashboard/admin/adminPages/orders/rejected" },
+          { label: "All Orders",
+             to: "/dashboard/admin/orders/all" },
+          {
+            label: "Pending Orders",
+            to: "/dashboard/admin/orders/pending",
+          },
+          {
+            label: "Completed Orders",
+            to: "/dashboard/admin/orders/completed",
+          },
+          {
+            label: "Rejected Orders",
+            to: "/dashboard/admin/orders/rejected",
+          },
         ],
       },
       {
         label: "Exam",
         to: "#",
-        children: [{ label: "Exam Code", to: "/dashboard/admin/adminPages/exam/code" }],
+        children: [
+          { label: "Online Exam", to: "/dashboard/admin/exam" },
+        ],
       },
       {
         label: "Blog",
         to: "#",
         children: [
-          { label: "Category", to: "/dashboard/admin/adminPages/blog/category" },
-          { label: "Posts", to: "/dashboard/admin/adminPages/blog/posts" },
+          {
+            label: "Category",
+            to: "/dashboard/admin/blog/category",
+          },
         ],
       },
-      { label: "Manage General FAQs", to: "/dashboard/admin/adminPages/general-faqs" },
+      {
+        label: "Manage General FAQs",
+        to: "/dashboard/admin/general-faqs",
+      },
     ],
   },
 ];
@@ -149,7 +194,8 @@ export default function AdminSidebar() {
     setOpenItems((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  const isPathActive = (path) => pathname === path || pathname.startsWith(`${path}/`);
+  const isPathActive = (path) =>
+    pathname === path || pathname.startsWith(`${path}/`);
 
   return (
     <aside
@@ -159,7 +205,10 @@ export default function AdminSidebar() {
       {/* Sidebar Header */}
       <div className="flex items-center justify-between mb-4">
         {isOpen && <h2 className="text-xl font-semibold">My Admin</h2>}
-        <button onClick={() => setIsOpen(!isOpen)} className="ml-auto text-gray-600 hover:text-blue-600">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="ml-auto text-gray-600 hover:text-blue-600"
+        >
           {isOpen ? <FiToggleLeft size={24} /> : <FiToggleRight size={24} />}
         </button>
       </div>
@@ -175,7 +224,8 @@ export default function AdminSidebar() {
 
           <div className="space-y-1">
             {section.links.map((item, idx) => {
-              const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+              const hasChildren =
+                Array.isArray(item.children) && item.children.length > 0;
               const isExpanded = openItems[item.label];
 
               return hasChildren ? (
@@ -191,7 +241,9 @@ export default function AdminSidebar() {
                     </div>
                     {isOpen && (
                       <FaChevronDown
-                        className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        className={`w-3 h-3 transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
                       />
                     )}
                   </button>
@@ -202,7 +254,11 @@ export default function AdminSidebar() {
                           key={subIdx}
                           href={subItem.to}
                           className={`block px-2 py-1 rounded hover:bg-blue-50
-                            ${isPathActive(subItem.to) ? "bg-blue-600 text-white font-semibold" : ""}`}
+                            ${
+                              isPathActive(subItem.to)
+                                ? "bg-blue-600 text-white font-semibold"
+                                : ""
+                            }`}
                         >
                           {subItem.label}
                         </Link>
@@ -215,7 +271,11 @@ export default function AdminSidebar() {
                   key={idx}
                   href={item.to}
                   className={`flex items-center gap-2 px-2 py-1 rounded hover:bg-blue-50 
-                    ${isPathActive(item.to) ? "bg-blue-600 text-white font-semibold" : ""}`}
+                    ${
+                      isPathActive(item.to)
+                        ? "bg-blue-600 text-white font-semibold"
+                        : ""
+                    }`}
                 >
                   {iconMap[item.label] || <FaPlusCircle size={16} />}
                   {isOpen && item.label}

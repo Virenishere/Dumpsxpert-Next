@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -8,32 +9,26 @@ const MaintenancePage = () => {
   );
   const [preview, setPreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const API_BASE = "http://localhost:8000/api/maintenance-page";
-
-  // Fetch current maintenance settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/`);
+        const res = await axios.get("http://localhost:8000/api/maintenance-page/");
         const data = res.data;
-
         if (data) {
-          setMaintenanceMode(data.maintenanceMode || false);
-          setMaintenanceText(data.maintenanceText || "");
+          setMaintenanceMode(data.maintenanceMode);
+          setMaintenanceText(data.maintenanceText);
           if (data.imageUrl) setPreview(data.imageUrl);
         }
       } catch (err) {
-        console.error("Failed to fetch maintenance settings:", err.message);
+        console.error("Failed to fetch maintenance setting:", err.message);
       }
     };
-
     fetchSettings();
   }, []);
 
   const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files[0];
     if (file) {
       setImageFile(file);
       setPreview(URL.createObjectURL(file));
@@ -42,7 +37,6 @@ const MaintenancePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     const formData = new FormData();
     formData.append("maintenanceMode", maintenanceMode);
@@ -50,23 +44,22 @@ const MaintenancePage = () => {
     if (imageFile) formData.append("image", imageFile);
 
     try {
-      const res = await axios.post(`${API_BASE}/update`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      alert("✅ Maintenance settings updated successfully!");
-      if (res.data?.imageUrl) setPreview(res.data.imageUrl);
+      const res = await axios.post(
+        "http://localhost:8000/api/maintenance-page/update",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      alert("✅ Maintenance settings updated!");
+      console.log("Update response:", res.data);
     } catch (err) {
       console.error("Update failed:", err.message);
-      alert("❌ Failed to update maintenance settings.");
-    } finally {
-      setLoading(false);
+      alert("❌ Update failed!");
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl space-y-6 mt-10">
-      {/* Maintenance Mode Toggle */}
+      {/* Toggle */}
       <div className="flex items-center justify-between">
         <label className="font-semibold">
           Maintenance Mode<span className="text-red-500">*</span>
@@ -95,7 +88,7 @@ const MaintenancePage = () => {
             maintenanceMode ? "bg-green-600" : "bg-red-600"
           }`}
         >
-          {maintenanceMode ? "Active" : "Inactive"}
+          {maintenanceMode ? "Active" : "Dactive"}
         </span>
       </div>
 
@@ -108,7 +101,7 @@ const MaintenancePage = () => {
           <div className="mb-4">
             <img
               src={preview}
-              alt="Maintenance Preview"
+              alt="Maintenance"
               className="w-64 h-auto rounded shadow"
             />
           </div>
@@ -123,10 +116,10 @@ const MaintenancePage = () => {
         />
       </div>
 
-      {/* Maintenance Text */}
+      {/* Textarea */}
       <div>
         <label className="block font-semibold mb-2">
-          Maintenance Message<span className="text-red-500">*</span>
+          Maintenance Text<span className="text-red-500">*</span>
         </label>
         <textarea
           value={maintenanceText}
@@ -139,12 +132,9 @@ const MaintenancePage = () => {
       {/* Submit Button */}
       <button
         onClick={handleSubmit}
-        disabled={loading}
-        className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded transition ${
-          loading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded"
       >
-        {loading ? "Updating..." : "Update Settings"}
+        Update
       </button>
     </div>
   );
