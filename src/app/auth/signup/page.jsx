@@ -75,16 +75,13 @@ export default function SignUp() {
       });
 
       if (result?.error) {
-        setError(result.error || "Sign-in after signup failed");
+        setError(result.error || "Sign-in failed");
         return;
       }
 
-      // Use the redirect path from the API response (role/subscription aware)
-      if (data.redirect) {
-        router.push(data.redirect);
-      } else {
-        router.push("/dashboard/guest");
-      }
+      // Refresh session to update JWT claims
+      await signIn(undefined, { redirect: false });
+      router.push("/dashboard");
     } catch (err) {
       setError("An error occurred during OTP verification. Please try again.");
       console.error("Verify OTP error:", err);

@@ -5,8 +5,6 @@ export async function middleware(request) {
   const token = await getToken({ req: request });
   const { pathname } = request.nextUrl;
 
-  console.log('Middleware token:', token); // Add this for debugging
-
   // Public routes
   if (
     pathname.startsWith("/auth") ||
@@ -32,7 +30,7 @@ export async function middleware(request) {
     let targetDashboard = "/dashboard/guest"; // Default to guest
     if (role === "admin") {
       targetDashboard = "/dashboard/admin";
-    } else if (subscription === "yes") {
+    } else if (role === "student" && subscription === "yes") {
       targetDashboard = "/dashboard/student";
     }
 
@@ -47,7 +45,10 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    if (pathname.startsWith("/dashboard/student") && subscription !== "yes") {
+    if (
+      pathname.startsWith("/dashboard/student") &&
+      (role !== "student" || subscription !== "yes")
+    ) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 

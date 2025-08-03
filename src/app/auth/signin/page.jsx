@@ -29,7 +29,8 @@ export default function SignIn() {
         return;
       }
 
-      router.push("/dashboard");
+      await signIn(undefined, { redirect: false });
+    router.push("/dashboard");
     } catch (err) {
       setError("An error occurred during sign-in. Please try again.");
       console.error("Sign-in error:", err);
@@ -38,10 +39,27 @@ export default function SignIn() {
 
   const handleOAuthSignIn = async (provider) => {
     try {
-      const result = await signIn(provider, { callbackUrl: "/dashboard" });
+      const result = await signIn(provider, { callbackUrl: "/dashboard", redirect: false });
       if (result?.error) {
         setError("OAuth sign-in failed");
+        return;
       }
+      // Wait for session to update
+      setTimeout(async () => {
+        const res = await fetch("/api/user/me");
+        if (res.ok) {
+          const user = await res.json();
+          if (user.role === "admin") {
+            router.push("/dashboard/admin");
+          } else if (user.role === "student" && user.subscription === "yes") {
+            router.push("/dashboard/student");
+          } else {
+            router.push("/dashboard/guest");
+          }
+        } else {
+          router.push("/dashboard/guest");
+        }
+      }, 1000);
     } catch (err) {
       setError("An error occurred during OAuth sign-in. Please try again.");
       console.error("OAuth sign-in error:", err);

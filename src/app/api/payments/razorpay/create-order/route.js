@@ -9,14 +9,16 @@ const razorpay = new Razorpay({
 
 export async function POST(request) {
   try {
+    console.log('Route hit: /api/payments/razorpay/create-order');
     const body = await request.json();
     const amount = Number(body.amount);
     const currency = body.currency || 'INR';
 
     // Input validation
     if (!amount || amount <= 0) {
+      console.error('Invalid or missing amount:', { amount });
       return NextResponse.json(
-        { error: 'Invalid or missing amount. Must be a number greater than 0.' },
+        { success: false, error: 'Invalid or missing amount. Must be a number greater than 0.' },
         { status: 400 }
       );
     }
@@ -31,17 +33,20 @@ export async function POST(request) {
     const order = await razorpay.orders.create(options);
 
     return NextResponse.json({
+      success: true,
       id: order.id,
-      amount: order.amount,
+      amount: order.amount / 100, // Return amount in INR
       currency: order.currency,
       receipt: order.receipt,
       status: order.status,
     }, { status: 200 });
-
   } catch (error) {
-    console.error('[RAZORPAY_ORDER_ERROR]', error);
+    console.error('[RAZORPAY_ORDER_ERROR]', {
+      error: error.message,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Unable to create order. Please try again later.' },
+      { success: false, error: `Unable to create order: ${error.message}` },
       { status: 500 }
     );
   }

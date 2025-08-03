@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FaCheckCircle, FaChevronRight, FaStar, FaUser } from "react-icons/fa";
 import useCartStore from "@/store/useCartStore";
 import { Toaster, toast } from "sonner";
+import Breadcrumbs from "@/components/public/Breadcrumbs";
 
 // Mock Data
 const mockProducts = [

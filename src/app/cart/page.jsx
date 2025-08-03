@@ -8,17 +8,17 @@ import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
 import useCartStore from "@/store/useCartStore";
 import cartImg from "../../assets/landingassets/emptycart.webp";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
 const Cart = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [couponError, setCouponError] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplicable, setCouponApplicable] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [userId, setUserId] = useState(null); // State for userId from /api/user/me
+  const [userId, setUserId] = useState(null);
 
   const cartItems = useCartStore((state) => state.cartItems);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -54,11 +54,6 @@ const Cart = () => {
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
-
-  // Debug Axios instance
-  useEffect(() => {
-    console.log("Axios instance:", instance);
   }, []);
 
   const subtotal = cartItems.reduce(
@@ -131,14 +126,15 @@ const Cart = () => {
         throw new Error("Axios instance is not initialized");
       }
 
-      console.log("Initiating Razorpay order creation:", { amount: grandTotal });
+      console.log("Initiating Razorpay order creation:", { amount: grandTotal, userId });
       const orderData = {
         amount: grandTotal,
         currency: "INR",
+        userId, // Include userId for validation
       };
       const response = await instance.post("/api/payments/razorpay/create-order", orderData);
       if (!response.data?.id) {
-        throw new Error("Failed to create Razorpay order");
+        throw new Error(response.data.error || "Failed to create Razorpay order");
       }
 
       const { id, amount, currency } = response.data;
@@ -160,8 +156,8 @@ const Cart = () => {
                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                 razorpay_order_id: razorpayResponse.razorpay_order_id,
                 razorpay_signature: razorpayResponse.razorpay_signature,
-                amount: orderData.amount,
-                userId: userId,
+                amount: grandTotal,
+                userId,
               }
             );
 
@@ -176,7 +172,17 @@ const Cart = () => {
               });
 
               clearCart();
-              router.push("/student/dashboard");
+
+              // Update session with new user data
+              await update({
+                user: {
+                  ...session.user,
+                  role: paymentVerification.data.user.role,
+                  subscription: paymentVerification.data.user.subscription,
+                },
+              });
+
+              router.push("/dashboard");
               toast.success("Payment successful! Redirecting to dashboard...");
             } else {
               toast.error(paymentVerification.data.error || "Payment verification failed");
@@ -192,6 +198,10 @@ const Cart = () => {
         },
         theme: {
           color: "#3B82F6",
+        },
+        prefill: {
+          email: session.user.email,
+          name: session.user.name,
         },
       };
 

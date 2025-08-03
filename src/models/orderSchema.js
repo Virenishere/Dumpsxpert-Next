@@ -12,7 +12,7 @@ const orderSchema = new mongoose.Schema({
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'UserInfo',
+    ref: 'authUsers', // Changed to authUsers
     required: true 
   },
   courseDetails: [{

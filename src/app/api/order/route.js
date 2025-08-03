@@ -11,9 +11,6 @@ export async function POST(request) {
     console.log('Route hit: /api/order [POST]');
     await connectMongoDB();
 
-    const cookies = request.headers.get('cookie');
-    console.log('Cookies received:', cookies);
-
     const session = await getServerSession(authOptions);
     console.log('Session:', session);
 
@@ -60,7 +57,7 @@ export async function POST(request) {
       );
     }
 
-    const user = await UserInfo.findById(userId);
+    const user = await UserInfo.findOne({ authUserId: userId });
     if (!user) {
       console.error('User not found:', userId);
       return NextResponse.json(
@@ -128,9 +125,6 @@ export async function GET(request) {
     console.log('Route hit: /api/order [GET]');
     await connectMongoDB();
 
-    const cookies = request.headers.get('cookie');
-    console.log('Cookies received:', cookies);
-
     const session = await getServerSession(authOptions);
     console.log('Session:', session);
 
@@ -145,7 +139,7 @@ export async function GET(request) {
       );
     }
 
-    const user = await UserInfo.findById(session.user.id);
+    const user = await UserInfo.findOne({ authUserId: session.user.id });
     if (!user || user.role !== 'admin') {
       console.error('Forbidden: User is not an admin', { userId: session.user.id });
       return NextResponse.json(
@@ -166,7 +160,7 @@ export async function GET(request) {
           { status: 400 }
         );
       }
-      const targetUser = await UserInfo.findById(userId);
+      const targetUser = await UserInfo.findOne({ authUserId: userId });
       if (!targetUser) {
         console.error('User not found for query:', userId);
         return NextResponse.json(

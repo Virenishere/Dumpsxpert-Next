@@ -7,7 +7,7 @@ if (mongoose.models.Payment) {
 const paymentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserInfo',
+    ref: 'authUsers',
     required: true,
   },
   amount: {
