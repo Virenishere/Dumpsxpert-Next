@@ -13,13 +13,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const menuItems = [
-  { name: "Dashboard", to: "/student/dashboard", icon: <FaUser /> },
-  { name: "My Orders", to: "/student/orders", icon: <FaShoppingCart /> },
-  { name: "My Courses (PDF)", to: "/student/courses-pdf", icon: <FaFileAlt /> },
-  { name: "My Courses (Online Exam)", to: "/student/courses-exam/list", icon: <FaFileAlt /> },
-  { name: "Result History Tracking", to: "/student/results", icon: <FaFileAlt /> },
-  { name: "Edit Profile", to: "/student/edit-profile", icon: <FaUser /> },
-  { name: "Change Password", to: "/student/change-password", icon: <FaUser /> },
+  { name: "Dashboard", to: "/dashboard/student/dashboard", icon: <FaUser /> },
+  { name: "My Orders", to: "/dashboard/student/myOrders", icon: <FaShoppingCart /> },
+  { name: "My Courses (PDF)", to: "/dashboard/student/pdfOrders", icon: <FaFileAlt /> },
+  { name: "My Courses (Online Exam)", to: "/dashboard/student/examOrders", icon: <FaFileAlt /> },
+  { name: "Result History Tracking", to: "/dashboard/student/resultTracking", icon: <FaFileAlt /> },
+  { name: "Edit Profile", to: "/dashboard/student/editProfile", icon: <FaUser /> },
+  { name: "Change Password", to: "/dashboard/student/changePassword", icon: <FaUser /> },
   { name: "Logout", to: "/logout", icon: <FaSignOutAlt /> },
 ];
 

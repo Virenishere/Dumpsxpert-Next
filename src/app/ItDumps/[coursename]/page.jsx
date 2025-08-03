@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Breadcrumbs from "@/components/public/Breadcrumbs";
 
@@ -14,15 +15,6 @@ const allProducts = [
     dumpsPriceInr: 1999,
     dumpsPriceUsd: 25,
     slug: "sap-financials-exam",
-  },
-  {
-    _id: "2",
-    category: "SAP",
-    title: "SAP Logistics Exam",
-    sapExamCode: "SAP-LOG-02",
-    dumpsPriceInr: 1799,
-    dumpsPriceUsd: 22,
-    slug: "sap-logistics-exam",
   },
   {
     _id: "2",
@@ -53,19 +45,18 @@ const allProducts = [
   },
 ];
 
-export default function CategoryPage({ params }) {
-  const { coursename } = params;
+export default function CategoryPage() {
+  const params = useParams();
+  const coursename = params?.coursename || ""; // Handle undefined
   const [searchTerm, setSearchTerm] = useState("");
   const [showFullText, setShowFullText] = useState(false);
 
-  // Filter by category (case-insensitive)
   const categoryProducts = useMemo(() => {
     return allProducts.filter(
       (p) => p.category.toLowerCase() === coursename.toLowerCase()
     );
   }, [coursename]);
 
-  // Deduplicate by `slug`
   const uniqueProducts = useMemo(() => {
     const seen = new Set();
     return categoryProducts.filter((p) => {
@@ -75,7 +66,6 @@ export default function CategoryPage({ params }) {
     });
   }, [categoryProducts]);
 
-  // Apply search filter
   const filteredProducts = useMemo(() => {
     return uniqueProducts.filter(
       (p) =>
@@ -86,17 +76,14 @@ export default function CategoryPage({ params }) {
 
   return (
     <div className="min-h-screen pt-28 pb-12 px-4 md:px-10 bg-gray-100">
-      {/* Breadcrumbs */}
       <div className="max-w-5xl mx-auto mb-6">
-      <Breadcrumbs/>
+        <Breadcrumbs />
       </div>
       <div className="w-full max-w-5xl mx-auto">
-        {/* Page Heading */}
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-800 mb-4">
           Latest {coursename.toUpperCase()} Exam Questions & Dumps [2025]
         </h1>
 
-        {/* Description with Read More/Read Less */}
         <p className="text-gray-600 text-base mb-3">
           {showFullText
             ? `DumpsExpert provides the most up-to-date ${coursename} certification dumps. All exam questions are based on the latest formats, helping you practice and pass with confidence.`
@@ -109,7 +96,6 @@ export default function CategoryPage({ params }) {
           {showFullText ? "Read Less" : "Read More"}
         </button>
 
-        {/* Search + Results Counter */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
           <p className="text-sm text-gray-600">
             Showing {filteredProducts.length} results
@@ -127,7 +113,7 @@ export default function CategoryPage({ params }) {
           </div>
         </div>
 
-        {/* Products Table (Desktop) */}
+        {/* Desktop Table View */}
         {filteredProducts.length > 0 ? (
           <>
             <div className="hidden md:block overflow-x-auto bg-white shadow rounded-lg border border-gray-200">
@@ -162,7 +148,6 @@ export default function CategoryPage({ params }) {
                         <Link
                           href={`/itdumps/${coursename}/by-slug/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
-                          aria-label={`View details for ${product.title}`}
                         >
                           See Details
                         </Link>
@@ -173,7 +158,7 @@ export default function CategoryPage({ params }) {
               </table>
             </div>
 
-            {/* Products Card View (Mobile) */}
+            {/* Mobile Card View */}
             <div className="md:hidden flex flex-col items-center gap-6 mt-6">
               {filteredProducts.map((product) => (
                 <div
@@ -200,7 +185,6 @@ export default function CategoryPage({ params }) {
                     <Link
                       href={`/itdumps/${coursename}/by-slug/${product.slug}`}
                       className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-sm text-center py-2 rounded-md shadow"
-                      aria-label={`View details for ${product.title}`}
                     >
                       See Details
                     </Link>
