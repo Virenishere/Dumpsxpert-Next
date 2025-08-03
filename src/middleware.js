@@ -22,11 +22,10 @@ export async function middleware(request) {
   }
 
   // Role-based and subscription-based access control
-  // if (pathname.startsWith("/dashboard")) {
-  //   const role = token.role || "guest";
-  //   const subscription = token.subscription || "no";
+  if (pathname.startsWith("/dashboard")) {
+    const role = token.role || "guest";
+    const subscription = token.subscription || "no";
 
-<<<<<<< HEAD
     // Determine the target dashboard based on role and subscription
     let targetDashboard = "/dashboard/guest"; // Default to guest
     if (role === "admin") {
@@ -34,26 +33,17 @@ export async function middleware(request) {
     } else if (role === "student" && subscription === "yes") {
       targetDashboard = "/dashboard/student";
     }
-=======
-  //   // Determine the target dashboard based on role and subscription
-  //   let targetDashboard = "/dashboard/guest"; // Default to guest
-  //   if (role === "admin") {
-  //     targetDashboard = "/dashboard/admin";
-  //   } else if (subscription === "yes") {
-  //     targetDashboard = "/dashboard/student";
-  //   }
->>>>>>> 9db8d3de2e2e2b9e06eab4aa12159df64ba9d441
 
-  //   // Redirect to role-specific or subscription-specific dashboard if accessing generic /dashboard
-  //   if (pathname === "/dashboard") {
-  //     const dashboardUrl = new URL(targetDashboard, request.url);
-  //     return NextResponse.redirect(dashboardUrl);
-  //   }
+    // Redirect to role-specific or subscription-specific dashboard if accessing generic /dashboard
+    if (pathname === "/dashboard") {
+      const dashboardUrl = new URL(targetDashboard, request.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
 
-  //   // Restrict access to specific dashboards based on role or subscription
-  //   if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
-  //     return NextResponse.redirect(new URL("/unauthorized", request.url));
-  //   }
+    // Restrict access to specific dashboards based on role or subscription
+    if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
+    }
 
     if (
       pathname.startsWith("/dashboard/student") &&
@@ -62,10 +52,10 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-  //   if (pathname.startsWith("/dashboard/guest") && role !== "guest") {
-  //     return NextResponse.redirect(new URL("/unauthorized", request.url));
-  //   }
-  // }
+    if (pathname.startsWith("/dashboard/guest") && role !== "guest") {
+      return NextResponse.redirect(new URL("/unauthorized", request.url));
+    }
+  }
 
   return NextResponse.next();
 }
