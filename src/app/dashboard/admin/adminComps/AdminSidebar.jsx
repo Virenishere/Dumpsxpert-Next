@@ -179,7 +179,7 @@ const sidebarItems = [
       },
       {
         label: "Manage General FAQs",
-        to: "/dashboard/admin/general-faqs",
+        to: "/dashboard/admin/generalFaq",
       },
     ],
   },
