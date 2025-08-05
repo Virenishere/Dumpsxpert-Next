@@ -110,8 +110,8 @@ export default function ExamDumpsSlider() {
   }, [currentIndex, slidesPerView]);
 
   return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="py-20 dark:bg-gray-900 overflow-hidden">
+      <div className="max-w-8xl mx-auto ">
         <h2 className="text-4xl font-bold text-center text-gray-800 dark:text-white mb-12">
           Most Popular IT Certification{" "}
           <span className="text-orange-500">Dumps</span>
@@ -164,7 +164,7 @@ export default function ExamDumpsSlider() {
                     <div className="text-xs text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-1">
                       <FolderOpen className="w-4 h-4" /> Category: {dump.category}
                     </div>
-                    <Button className="mt-auto w-full bg-blue-500 hover:bg-orange-600 text-white">
+                    <Button className="mt-auto w-full bg-[#1A2E33] hover:bg-[#19332d] text-white">
                       View More
                     </Button>
                   </CardContent>

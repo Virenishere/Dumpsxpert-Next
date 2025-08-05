@@ -1,99 +1,151 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import Image from "next/image";
 
+gsap.registerPlugin(ScrollTrigger);
+
+// Assets
+import downloadable from "@/assets/unlockGoalsAssets/downloadable.jpg";
+import affordable from "@/assets/unlockGoalsAssets/affordable.webp";
+import moneyBack from "@/assets/unlockGoalsAssets/moneyBack.webp";
+import support from "@/assets/unlockGoalsAssets/support.jpg";
+import freeUpdate from "@/assets/unlockGoalsAssets/freeUpdate.webp";
+import validDumps from "@/assets/unlockGoalsAssets/validDumps.webp";
+import freesample from "@/assets/unlockGoalsAssets/freesample.webp";
+import specialDiscount from "@/assets/unlockGoalsAssets/specialDiscount.webp";
+
+// Data
 const cardData = [
   {
-    icon: "/landingassets/downloadable.jpg",
+    icon: downloadable,
     title: "Downloadable PDF with Questions & Answers",
     description:
       "The Dumpsxpert provides 100% original and verified updated IT Certification Dumps for all exams.",
   },
   {
-    icon: "/landingassets/affordable.webp",
+    icon: affordable,
     title: "Affordable & Reasonable Price",
     description:
       "You will never have to pay much for these real exam questions. Our prices are very reasonable and affordable.",
   },
   {
-    icon: "/landingassets/moneyBack.webp",
+    icon: moneyBack,
     title: "100% Money Back Guarantee",
     description:
       "We provide exact IT exam questions & answers at no risk to you. If our resources do not live up to expectations, you can claim a refund.",
   },
   {
-    icon: "/landingassets/support.jpg",
+    icon: support,
     title: "24/7 Customer Support",
     description:
       "We offer live customer support to make your learning process smooth and effortless. Reach out for any assistance.",
   },
   {
-    icon: "/landingassets/freeUpdate.webp",
+    icon: freeUpdate,
     title: "Free Updates up to 90 Days",
     description:
       "We provide free 90 days of updates on all IT certification exam preparation materials.",
   },
   {
-    icon: "/landingassets/validDumps.webp",
+    icon: validDumps,
     title: "100% Valid IT Exam Dumps",
     description:
       "Dumpsxpert provides 100% valid IT exam questions and answers for certification success.",
   },
   {
-    icon: "/landingassets/freesample.webp",
+    icon: freesample,
     title: "Free Sample",
     description:
-      "Dumpsxpert provides 100% valid IT exam questions and answers for certification success.",
+      "You can try our dumps for free before purchasing. Get a sample to check quality.",
   },
   {
-    icon: "/landingassets/specialDiscount.webp",
+    icon: specialDiscount,
     title: "Special Discount Offer",
     description:
-      "Dumpsxpert provides 100% valid IT exam questions and answers for certification success.",
+      "Enjoy limited-time discounts on top-selling certification dumps. Don’t miss out!",
   },
 ];
 
-const UnlockGoals = () => {
-  return (
-    <div className=" min-h-screen py-10">
-      <header className="text-center mb-10 py-16">
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-          Unlock your IT certification goals with Dumps Xpert
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 text-lg mt-4">
-          Benefits of IT Certification Dumps, Practice Exams and Study Materials
-          With Dumpsxpert
-        </p>
-      </header>
+const WhyChooseSection = () => {
+  const rightRef = useRef(null);
+  const cardRefs = useRef([]);
 
-      <main className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {cardData.map((card, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-transform hover:scale-105"
-            >
-              <div className="mb-4 flex items-center justify-center">
-                <Image
-                  src={card.icon}
-                  alt={card.title}
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-md object-cover"
-                />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white text-center">
-                {card.title}
-              </h3>
-              <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm text-center">
-                {card.description}
-              </p>
+  useEffect(() => {
+    // Shrink left sticky panel on scroll
+    gsap.to(".sticky-left", {
+      scrollTrigger: {
+        trigger: rightRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+      },
+      scale: 0.95,
+      transformOrigin: "top center",
+    });
+
+    // Animate each card
+    cardRefs.current.forEach((card, index) => {
+      gsap.fromTo(
+        card,
+        { autoAlpha: 0, y: 80 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+    });
+  }, []);
+
+  return (
+    <div className="flex w-full min-h-screen">
+      {/* Sticky Left Panel */}
+      <div className="sticky-left md:w-1/2 sticky top-0 h-screen bg-indigo-800 text-white p-10 flex flex-col justify-center items-center transition-all duration-500">
+        <h2 className="text-4xl font-bold mb-4 text-center">
+          Why Choose DumpsXpert?
+        </h2>
+        <p className="text-lg text-center text-white/90">
+          Unlock your potential with our premium resources. <br />
+          Real questions, real results, real support — all designed to help you
+          succeed.
+        </p>
+      </div>
+
+      {/* Scrollable Cards Section */}
+      <div ref={rightRef} className="md:w-1/2 bg-white text-black">
+        {cardData.map((card, index) => (
+          <section
+            key={index}
+            ref={(el) => (cardRefs.current[index] = el)}
+            className="min-h-160 flex flex-col items-center justify-center px-6 sm:px-12  text-center"
+          >
+            <div className="w-32 h-32  rounded-lg overflow-hidden shadow-md">
+              <Image
+                src={card.icon}
+                alt={card.title}
+                width={128}
+                height={128}
+                className="object-cover w-full h-full"
+              />
             </div>
-          ))}
-        </div>
-      </main>
+            <h3 className="text-2xl font-semibold mb-4">{card.title}</h3>
+            <p className="max-w-lg text-gray-700 text-lg">{card.description}</p>
+          </section>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default UnlockGoals;
+export default WhyChooseSection;
+import { useState } from "react";
