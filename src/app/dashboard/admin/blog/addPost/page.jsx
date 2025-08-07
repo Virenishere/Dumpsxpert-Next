@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import axios from "axios";
 import dynamic from "next/dynamic";
-import useBlogStore from "@/store/blogStore";
+// import useBlogStore from "@/store/blogStore";
 import "react-toastify/dist/ReactToastify.css";
 
 const CKEditor = dynamic(() => import("@ckeditor/ckeditor5-react").then(mod => mod.CKEditor), { ssr: false });
@@ -16,8 +16,8 @@ const BlogPosts = () => {
   const categoryId = searchParams.get("categoryId") || "";
   const router = useRouter();
 
-  const { blogCategories, fetchBlogCategories, addBlog } = useBlogStore();
-  const categories = Array.isArray(blogCategories) ? blogCategories : [];
+  // const { blogCategories, fetchBlogCategories, addBlog } = useBlogStore();
+  // const categories = Array.isArray(blogCategories) ? blogCategories : [];
 
   const [formData, setFormData] = useState({
     title: "",
