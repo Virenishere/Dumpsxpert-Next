@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import axios from "axios";
+"use client";
 
-const SampleInstructionsPage = () => {
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+export default function SampleInstructionsPage({ params }) {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [exam, setExam] = useState({});
 
   const router = useRouter();
-  const { slug } = router.query;
+  const { slug } = params; // ✅ slug comes from params in App Router
 
   useEffect(() => {
     if (!slug) return;
 
     const fetchInstructions = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/exams/byslug/${slug}`);
+        const res = await axios.get(`http://localhost:8000/api/exams/byslug/sdfsdf%20sdfsf`);
         const examData = res.data[0];
         setExam(examData);
       } catch (err) {
@@ -35,7 +35,7 @@ const SampleInstructionsPage = () => {
       alert("Please agree to the terms and conditions before starting.");
       return;
     }
-    router.push(`/courses-exam/sample-test/start/${slug}`);
+    router.push(`/exam/testPage/${slug}`);
   };
 
   return (
@@ -93,6 +93,4 @@ const SampleInstructionsPage = () => {
       </div>
     </div>
   );
-};
-
-export default SampleInstructionsPage;
+}
