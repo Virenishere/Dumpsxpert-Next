@@ -1,5 +1,5 @@
 // models/ProductCategory.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const productCategorySchema = new mongoose.Schema(
   {
@@ -21,6 +21,6 @@ const productCategorySchema = new mongoose.Schema(
 );
 
 // Prevent model overwrite in development (for Next.js hot reload)
-module.exports =
-  mongoose.models.ProductCategory ||
-  mongoose.model("ProductCategory", productCategorySchema);
+const ProductCategory= mongoose.models.ProductCategory ||
+mongoose.model("ProductCategory", productCategorySchema);
+export default ProductCategory;

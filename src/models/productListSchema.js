@@ -1,5 +1,5 @@
 // models/Product.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const productListSchema = new mongoose.Schema(
   {
@@ -54,5 +54,5 @@ const productListSchema = new mongoose.Schema(
 );
 
 // Prevent model overwrite in development (for Next.js hot reload)
-module.exports =
-  mongoose.models.Product || mongoose.model('Product', productListSchema);
+const Product = mongoose.models.Product || mongoose.model('Product', productListSchema);
+export default Product;

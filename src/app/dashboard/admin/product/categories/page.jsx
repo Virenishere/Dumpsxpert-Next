@@ -58,7 +58,7 @@ const ProductCategories = () => {
     <div className="p-6 bg-white min-h-screen">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Product Categories</h2>
-        <Link href="/product-categories/add">
+        <Link href="categories/add">
           <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             + Add
           </button>
