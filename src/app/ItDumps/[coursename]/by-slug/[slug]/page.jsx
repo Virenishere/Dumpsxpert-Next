@@ -340,7 +340,7 @@ export default function ProductDetailsPage() {
                     </span>
                   </p>
                   <p>
-                    $
+                    ` $
                     <span className="text-blue-400 font-bold ml-1">
                       {exams.priceUSD ?? "N/A"}
                     </span>
@@ -354,17 +354,20 @@ export default function ProductDetailsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => navigate(`/sample-instructions/${slug}`)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    onClick={() =>
+                      router.push(`/exam/sample-instruction/${slug}`)
+                    }
+                    className="bg-blue-600 cursor-pointer text-white px-3 py-1 rounded text-sm"
                   >
                     Try Online Exam
                   </button>
+
                   <button
                     onClick={() => handleAddToCart("online")}
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold px-4 py-2 rounded"
                     // disabled={isAdding}
                   >
-                    🛒 Add to Cart
+                    🛒 Add to Cart`
                   </button>
                 </div>
               </div>

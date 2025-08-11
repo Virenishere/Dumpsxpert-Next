@@ -15,7 +15,9 @@ import StudentDashboard from "@/app/dashboard/student/studentPages/StudentDashbo
 import AdminLayout from "@/app/dashboard/admin/layout"; // Adjust the import path as necessary
 import StudentLayout from "@/app/dashboard/student/layout"; // Adjust the import path as necessary
 
-
+import ContentDumpsFirst from "@/landin page/ContentBoxFirst";
+import ContentDumpsSecond from "@/landin page/ContentBoxSecond";
+import Testimonial from "@/landin page/Testimonial";
 
 export const metadata = {
   title: "Dumpsxpert – #1 IT Exam Dumps Provider",
@@ -66,21 +68,21 @@ export default async function HomePage() {
       <section className="w-full bg-white pt-24 px-4 sm:px-6 lg:px-20 flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
         <div className="w-full lg:w-1/2 mt-10 lg:mt-0">
           <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
-            Pass Your IT Certification Exam <span className="text-blue-700">On the First Try</span>
+            Pass Your IT Certification Exam <span className="text-[#13677c]">On the First Try</span>
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6">
             Dumpsxpert offers industry-validated study materials, real exam dumps, and browser-based practice tests to help you get certified faster — and smarter.
           </p>
           <ul className="space-y-3 text-gray-700 mb-6 text-sm sm:text-base">
             {[
-              "✅ 100% Verified & Up-to-Date Dumps",
-              "💰 100% Money Back Guarantee",
-              "📞 24/7 Expert Support",
-              "🔁 Free Updates for 3 Months",
-              "🧪 Realistic Practice Test Interface",
+              " 100% Verified & Up-to-Date Dumps",
+              " 100% Money Back Guarantee",
+              " 24/7 Expert Support",
+              " Free Updates for 3 Months",
+              " Realistic Practice Test Interface",
             ].map((item, index) => (
               <li key={index} className="flex items-start gap-2">
-                <div className="bg-green-500 rounded-full p-1.5 flex items-center justify-center w-7 h-7">
+                <div className="bg-[#7aa93c] rounded-full p-1.5 flex items-center justify-center w-7 h-7">
                   <Check className="text-white w-4 h-4" />
                 </div>
                 <span>{item}</span>
@@ -114,7 +116,7 @@ export default async function HomePage() {
               <Button
                 key={dump._id}
                 variant="secondary"
-                className="text-xs sm:text-sm md:text-base bg-[#012147] text-white hover:bg-[#02346d] px-4 py-2"
+                className="text-xs sm:text-sm md:text-base bg-[#113d48] text-white hover:bg-[#1a2e33] px-4 py-2"
               >
                 {dump.name}
               </Button>
@@ -175,7 +177,7 @@ export default async function HomePage() {
             <div className="mt-10 text-center">
               <Button
                 asChild
-                className="bg-blue-700 hover:bg-blue-800 text-white"
+                className="bg-[#1f424b] hover:bg-[#2f5058] text-white"
               >
                 <Link href="/blogs">See All Blogs</Link>
               </Button>
@@ -183,7 +185,10 @@ export default async function HomePage() {
 
             {/* Extra Sections */}
             <ExamDumpsSlider />
+            <ContentDumpsFirst />
             <UnlockGoals />
+            <ContentDumpsSecond  />
+            <Testimonial/>
             <GeneralFAQs />
           </>
         )}

@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
-  { label: "IT Dumps", path: "/itdumps", dropdownKey: "itdumps" },
+  { label: "IT Dumps", path: "/ItDumps", dropdownKey: "Itdumps" },
   { label: "Blogs", path: "/blogs", dropdownKey: "blogs" },
   { label: "Contact Us", path: "/contact" },
 ];
@@ -67,7 +67,8 @@ export default function Navbar() {
     if (!userData) return "/dashboard/guest"; // Default to guest if no user data
     const { role, subscription } = userData;
     if (role === "admin") return "/dashboard/admin";
-    if (role === "student" && subscription === "yes") return "/dashboard/student";
+    if (role === "student" && subscription === "yes")
+      return "/dashboard/student";
     return "/dashboard/guest";
   };
 
@@ -81,12 +82,15 @@ export default function Navbar() {
       {/* Desktop Nav Links */}
       <ul className="hidden lg:flex gap-10 font-semibold items-center relative">
         {navlinks.map((item, index) => {
-          const hasDropdown = item.dropdownKey && dropdownData[item.dropdownKey];
+          const hasDropdown =
+            item.dropdownKey && dropdownData[item.dropdownKey];
           return (
             <li
               key={index}
               className="relative group"
-              onMouseEnter={() => hasDropdown && setActiveDropdown(item.dropdownKey)}
+              onMouseEnter={() =>
+                hasDropdown && setActiveDropdown(item.dropdownKey)
+              }
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <Link
@@ -101,7 +105,9 @@ export default function Navbar() {
                   {dropdownData[item.dropdownKey].map((sub, i) => (
                     <li key={i}>
                       <Link
-                        href={`/itdumps/${sub.toLowerCase().replace(/\s+/g, "-")}`}
+                        href={`/itDumps/${sub
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         {sub}
@@ -134,7 +140,9 @@ export default function Navbar() {
               <Button variant="ghost" className="p-0 h-auto">
                 <Avatar>
                   <AvatarImage
-                    src={userData?.profileImage || "https://via.placeholder.com/40"}
+                    src={
+                      userData?.profileImage || "https://via.placeholder.com/40"
+                    }
                   />
                   <AvatarFallback>
                     {userData?.name?.charAt(0) || "U"}
@@ -165,7 +173,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/auth/signin"
-            className="hidden lg:inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+            className="hidden lg:inline-block bg-[#113d48] text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
           >
             Login / Register
           </Link>
@@ -205,7 +213,10 @@ export default function Navbar() {
                   <div className="flex items-center gap-2 py-2">
                     <Avatar>
                       <AvatarImage
-                        src={userData?.profileImage || "https://via.placeholder.com/40"}
+                        src={
+                          userData?.profileImage ||
+                          "https://via.placeholder.com/40"
+                        }
                       />
                       <AvatarFallback>
                         {userData?.name?.charAt(0) || "U"}
