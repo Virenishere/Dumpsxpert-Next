@@ -1,116 +1,70 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongo";
 import ProductCategory from "@/models/productCategorySchema";
-import { deleteFromCloudinary } from "@/utils/cloudinary";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
-import cloudinary from "cloudinary";
+import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
 
-// Configure Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// GET: Fetch a product category by ID
-export async function GET(request, { params }) {
+export async function PUT(req, { params }) {
   try {
     await connectMongoDB();
-    const category = await ProductCategory.findById(params.id);
+
+    const { id } = params;
+    const formData = await req.formData();
+
+    const name = formData.get("name");
+    const status = formData.get("status") || "Ready";
+    const file = formData.get("image");
+
+    const category = await ProductCategory.findById(id);
+
     if (!category) {
       return NextResponse.json(
         { message: "Category not found" },
         { status: 404 }
       );
     }
-    return NextResponse.json(category, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching category:", error);
-    return NextResponse.json(
-      { message: "Error fetching category", error: error.message },
-      { status: 500 }
-    );
-  }
-}
 
-// PUT: Update a product category
-export async function PUT(request, { params }) {
-  try {
-    await connectMongoDB();
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        { message: "Authentication required" },
-        { status: 401 }
-      );
-    }
+    let imageUrl = category.image;
+    let publicId = category.public_id;
 
-    const formData = await request.formData();
-    const name = formData.get("name");
-    const status = formData.get("status");
-    const file = formData.get("file");
-
-    const existing = await ProductCategory.findById(params.id);
-    if (!existing) {
-      return NextResponse.json(
-        { message: "Category not found" },
-        { status: 404 }
-      );
-    }
-
-    const updatedFields = {
-      name: name || existing.name,
-      status: status || existing.status,
-    };
-
-    if (file) {
-      if (existing.public_id) {
-        await deleteFromCloudinary(existing.public_id);
+    if (file && file.size > 0) {
+      // Delete old image
+      if (publicId) {
+        await deleteFromCloudinary(publicId);
       }
-      const uploadResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.v2.uploader.upload_stream(
-          { folder: "product-categories" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        file.stream().pipe(stream);
-      });
-      updatedFields.imageUrl = uploadResult.secure_url;
-      updatedFields.public_id = uploadResult.public_id;
+      // Upload new image
+      const uploadResult = await uploadToCloudinary(file);
+      if (!uploadResult.secure_url) {
+        throw new Error("Cloudinary upload failed");
+      }
+      imageUrl = uploadResult.secure_url;
+      publicId = uploadResult.public_id;
     }
 
-    const updated = await ProductCategory.findByIdAndUpdate(
-      params.id,
-      updatedFields,
-      { new: true, runValidators: true }
-    );
+    category.name = name || category.name;
+    category.status = status;
+    category.image = imageUrl;
+    category.public_id = publicId;
 
-    return NextResponse.json(updated, { status: 200 });
+    const updatedCategory = await category.save();
+
+    return NextResponse.json(updatedCategory);
   } catch (error) {
-    console.error("❌ UPDATE ERROR:", error);
+    console.error("PUT Error:", error);
     return NextResponse.json(
-      { message: "Server error while updating category", error: error.message },
+      { message: "Server error", error: error.message },
       { status: 500 }
     );
   }
 }
 
-// DELETE: Delete a product category
-export async function DELETE(request, { params }) {
+export async function DELETE(req, { params }) {
   try {
     await connectMongoDB();
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        { message: "Authentication required" },
-        { status: 401 }
-      );
-    }
 
-    const category = await ProductCategory.findById(params.id);
+    const { id } = params;
+
+    const category = await ProductCategory.findById(id);
+
     if (!category) {
       return NextResponse.json(
         { message: "Category not found" },
@@ -122,16 +76,13 @@ export async function DELETE(request, { params }) {
       await deleteFromCloudinary(category.public_id);
     }
 
-    await ProductCategory.findByIdAndDelete(params.id);
+    await ProductCategory.findByIdAndDelete(id);
 
-    return NextResponse.json(
-      { message: "Category deleted" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Category deleted successfully" });
   } catch (error) {
-    console.error("Error deleting category:", error);
+    console.error("DELETE Error:", error);
     return NextResponse.json(
-      { message: "Error deleting category", error: error.message },
+      { message: "Server error", error: error.message },
       { status: 500 }
     );
   }

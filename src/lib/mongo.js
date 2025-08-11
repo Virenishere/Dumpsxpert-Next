@@ -2,16 +2,28 @@ import mongoose from "mongoose";
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-if (!uri) {
-  throw new Error("Please add your Mongo URI to .env.local");
-}
+if (!uri) throw new Error("Missing MongoDB URI");
 
-// MongoDB Native Client (for @next-auth/mongodb-adapter)
+// Mongoose Connection
+let cached = global.mongoose;
+if (!cached) cached = global.mongoose = { conn: null };
+
+export const connectMongoDB = async () => {
+  if (cached.conn) return cached.conn;
+  
+  const opts = {
+    bufferCommands: false,
+  };
+
+  cached.conn = await mongoose.connect(uri, opts);
+  return cached.conn;
+};
+
+// MongoDB Native Client
 let client;
 let clientPromise;
 
 if (process.env.NODE_ENV === "development") {
-  // Preserve client across hot reloads in development
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri);
     global._mongoClientPromise = client.connect();
@@ -22,12 +34,4 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
-// Mongoose Connection
-let mongooseConnected = false;
-async function connectMongoDB() {
-  if (mongooseConnected) return;
-  await mongoose.connect(uri);
-  mongooseConnected = true;
-}
-
-export { connectMongoDB, clientPromise };
+export { clientPromise };
