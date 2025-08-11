@@ -1,3 +1,4 @@
+// lib/auth/authOptions.js
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import FacebookProvider from 'next-auth/providers/facebook';
@@ -19,13 +20,12 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          console.log('Authorize: Starting for email', credentials?.email);
           if (!credentials?.email || !credentials?.password) {
             throw new Error('Email and password are required');
           }
 
           await connectMongoDB();
-          const user = await UserInfo.findOne({ email: credentials.email });
+          const user = await UserInfo.findOne({ email: credentials.email }).select('+password');
           if (!user) {
             throw new Error('User not found. Please sign up with OTP.');
           }
@@ -42,7 +42,6 @@ export const authOptions = {
           const adapter = MongoDBAdapter(clientPromise, { collections: { Users: 'authUsers' } });
           let authUser = await adapter.getUserByEmail(credentials.email);
           if (!authUser) {
-            console.log(`Authorize: Creating new authUser for ${credentials.email}`);
             authUser = await adapter.createUser({
               email: user.email,
               name: user.name || user.email.split('@')[0],
@@ -54,21 +53,19 @@ export const authOptions = {
               { upsert: true }
             );
           } else if (!user.authUserId || !user.authUserId.equals(authUser.id)) {
-            console.log(`Authorize: Updating UserInfo authUserId for ${user.email}: ${user.authUserId} -> ${authUser.id}`);
             await UserInfo.updateOne(
               { email: credentials.email },
               { authUserId: authUser.id }
             );
           }
 
-          console.log(`Authorize: Success for ${user.email}, authUser.id: ${authUser.id}`);
           return {
             id: authUser.id.toString(),
             email: user.email,
             name: user.name,
-            role: user.role,
-            subscription: user.subscription,
-            provider: user.provider,
+            role: user.role || 'guest',
+            subscription: user.subscription || 'no',
+            provider: user.provider || 'credentials',
             providerId: user.providerId,
             isVerified: user.isVerified,
             phone: user.phone,
@@ -108,41 +105,34 @@ export const authOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        console.log(`SignIn: Starting for ${user.email}, provider: ${account?.provider}`);
         await connectMongoDB();
         const adapter = MongoDBAdapter(clientPromise, { collections: { Users: 'authUsers', Accounts: 'accounts', Sessions: 'sessions' } });
+        const email = user.email;
 
         if (account?.provider === 'google' || account?.provider === 'facebook') {
-          const { email } = user;
-          const { provider, providerAccountId } = account;
-
-          // Always get authUser by email
           let authUser = await adapter.getUserByEmail(email);
           let userInfo = await UserInfo.findOne({ email });
 
-          // If authUser doesn't exist, create it
+          // Create authUser if it doesn't exist
           if (!authUser) {
             authUser = await adapter.createUser({
               email,
               name: user.name || email.split('@')[0],
               image: user.image || '',
             });
-            console.log('SignIn: Created new authUser:', authUser);
           }
 
-          // Always ensure account is linked to authUser
+          // Link account to authUser
           const accountDoc = await clientPromise.then(client =>
-            client.db().collection('accounts').findOne({ provider, providerAccountId })
+            client.db().collection('accounts').findOne({ provider: account.provider, providerAccountId: account.providerAccountId })
           );
           if (!accountDoc || accountDoc.userId.toString() !== authUser.id.toString()) {
-            // Remove any old account docs for this provider/providerAccountId
             await clientPromise.then(client =>
-              client.db().collection('accounts').deleteMany({ provider, providerAccountId })
+              client.db().collection('accounts').deleteMany({ provider: account.provider, providerAccountId: account.providerAccountId })
             );
-            // Link account to current authUser
             await adapter.linkAccount({
-              provider,
-              providerAccountId,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
               type: account.type,
               access_token: account.access_token,
               expires_at: account.expires_at,
@@ -150,22 +140,21 @@ export const authOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              userId: authUser.id.toString(), // always a string!
+              userId: authUser.id.toString(),
             });
-            console.log('SignIn: Linked account to authUser:', authUser.id.toString());
           }
 
-          // Update or create UserInfo
+          // Create or update UserInfo
           if (!userInfo) {
             userInfo = new UserInfo({
               authUserId: authUser.id,
               email,
               name: user.name || email.split('@')[0],
-              provider,
-              providerId: providerAccountId,
+              provider: account.provider,
+              providerId: account.providerAccountId,
               isVerified: true,
-              role: 'guest',
-              subscription: 'no',
+              role: 'guest', // Default role
+              subscription: 'no', // Default subscription
               phone: '',
               address: '',
               bio: '',
@@ -173,77 +162,101 @@ export const authOptions = {
               createdAt: new Date(),
             });
             await userInfo.save();
-            console.log('SignIn: Created new UserInfo:', userInfo);
           } else {
             await UserInfo.updateOne(
               { email },
               {
                 authUserId: authUser.id,
-                provider,
-                providerId: providerAccountId,
+                provider: account.provider,
+                providerId: account.providerAccountId,
                 isVerified: true,
                 name: userInfo.name || user.name || email.split('@')[0],
                 profileImage: userInfo.profileImage || user.image || '',
+                // Preserve existing role and subscription unless explicitly updated
               }
             );
-            console.log('SignIn: Updated UserInfo for', email);
           }
 
+          // Update user object with UserInfo data
           user.id = authUser.id.toString();
-          console.log(`SignIn: Completed successfully for ${email}, user.id: ${user.id}`);
+          user.role = userInfo.role || 'guest';
+          user.subscription = userInfo.subscription || 'no';
+          user.provider = userInfo.provider || account.provider;
+          user.providerId = userInfo.providerId || account.providerAccountId;
+          user.isVerified = userInfo.isVerified;
+          user.phone = userInfo.phone;
+          user.address = userInfo.address;
+          user.dob = userInfo.dob;
+          user.gender = userInfo.gender;
+          user.bio = userInfo.bio;
+          user.profileImage = userInfo.profileImage;
+          user.createdAt = userInfo.createdAt;
+
           return true;
         }
 
         // Credentials provider
-        console.log(`SignIn: Completed for credentials provider, email: ${user.email}`);
         return true;
       } catch (error) {
-        console.error(`SignIn callback error for ${user.email}:`, error.message, error.stack);
+        console.error('SignIn callback error:', error.message);
         return false;
       }
     },
     async jwt({ token, user, account }) {
       try {
-        console.log('JWT: Input token:', token);
+        // Initial sign-in: populate token with user data
         if (user) {
-          console.log('JWT: Populating token from user:', user);
-          token.id = user.id || token.id;
-          token.email = user.email || token.email;
-          token.name = user.name || token.name;
-          token.role = user.role || token.role;
-          token.subscription = user.subscription || token.subscription;
-          token.provider = user.provider || token.provider;
-          token.providerId = user.providerId || token.providerId;
-          token.isVerified = user.isVerified ?? token.isVerified;
-          token.phone = user.phone || token.phone;
-          token.address = user.address || token.address;
-          token.dob = user.dob || token.dob;
-          token.gender = user.gender || token.gender;
-          token.bio = user.bio || token.bio;
-          token.profileImage = user.profileImage || token.profileImage;
-          token.createdAt = user.createdAt || token.createdAt;
+          token.id = user.id;
+          token.email = user.email;
+          token.name = user.name;
+          token.role = user.role || 'guest';
+          token.subscription = user.subscription || 'no';
+          token.provider = user.provider || account?.provider || 'credentials';
+          token.providerId = user.providerId;
+          token.isVerified = user.isVerified ?? false;
+          token.phone = user.phone;
+          token.address = user.address;
+          token.dob = user.dob;
+          token.gender = user.gender;
+          token.bio = user.bio;
+          token.profileImage = user.profileImage;
+          token.createdAt = user.createdAt;
+          token.accessToken = account?.access_token;
+        } else {
+          // Refresh token with latest UserInfo data
+          await connectMongoDB();
+          const userInfo = await UserInfo.findOne({ email: token.email }).select(
+            'role subscription name email provider providerId isVerified phone address dob gender bio profileImage createdAt'
+          );
+          if (userInfo) {
+            token.role = userInfo.role || 'guest';
+            token.subscription = userInfo.subscription || 'no';
+            token.name = userInfo.name;
+            token.email = userInfo.email;
+            token.provider = userInfo.provider;
+            token.providerId = userInfo.providerId;
+            token.isVerified = userInfo.isVerified;
+            token.phone = userInfo.phone;
+            token.address = userInfo.address;
+            token.dob = userInfo.dob;
+            token.gender = userInfo.gender;
+            token.bio = userInfo.bio;
+            token.profileImage = userInfo.profileImage;
+            token.createdAt = userInfo.createdAt;
+          }
         }
-        if (account) {
-          console.log('JWT: Adding account details:', account);
-          token.provider = account.provider || token.provider;
-          token.providerId = account.providerAccountId || token.providerId;
-          token.accessToken = account.access_token || token.accessToken;
-        }
+
         // Always set iat/exp
         token.iat = Math.floor(Date.now() / 1000);
         token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-        console.log('JWT: Output token:', token);
         return token;
       } catch (error) {
-        console.error('JWT callback error:', error.message, error.stack);
-        // Return the incoming token to avoid breaking session
-        return token;
+        console.error('JWT callback error:', error.message);
+        return token; // Return original token to avoid breaking session
       }
     },
     async session({ session, token }) {
       try {
-        console.log('Session: Input token:', token, 'Input session:', session);
-        // Always assign user info from token
         session.user = session.user || {};
         session.user.id = token.id;
         session.user.email = token.email;
@@ -262,12 +275,10 @@ export const authOptions = {
         session.user.createdAt = token.createdAt;
         session.accessToken = token.accessToken;
         session.expires = new Date(token.exp * 1000).toISOString();
-        console.log('Session: Output session:', session);
         return session;
       } catch (error) {
-        console.error('Session callback error:', error.message, error.stack);
-        // Return the incoming session to avoid breaking session
-        return session;
+        console.error('Session callback error:', error.message);
+        return session; // Return original session to avoid breaking session
       }
     },
   },
@@ -277,7 +288,7 @@ export const authOptions = {
     signOut: '/auth/signout',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true,
+  debug: process.env.NODE_ENV !== 'production', // Disable debug in production
   cookies: {
     sessionToken: {
       name: 'next-auth.session-token',
@@ -285,7 +296,7 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production' ? true : false,
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60, // 24 hours
       },
     },
@@ -294,7 +305,7 @@ export const authOptions = {
       options: {
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production' ? true : false,
+        secure: process.env.NODE_ENV === 'production',
       },
     },
     csrfToken: {
@@ -303,7 +314,7 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production' ? true : false,
+        secure: process.env.NODE_ENV === 'production',
       },
     },
     state: {
@@ -312,7 +323,7 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production' ? true : false,
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 900,
       },
     },
@@ -322,7 +333,7 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production' ? true : false,
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 900,
       },
     },

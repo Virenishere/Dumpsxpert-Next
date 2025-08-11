@@ -146,7 +146,7 @@ export default function CategoryPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
+                          href={`/itdumps/${coursename}/by-slug/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
                         >
                           See Details
@@ -183,7 +183,7 @@ export default function CategoryPage() {
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <Link
-                      href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
+                      href={`/itdumps/${coursename}/by-slug/${product.slug}`}
                       className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-sm text-center py-2 rounded-md shadow"
                     >
                       See Details

@@ -49,7 +49,7 @@ export async function POST(req) {
     );
 
     // Verify SMTP credentials
-    if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
+    if (!process.env.EMAIL_SERVER_USER || !process.env.EMAIL_SERVER_PASSWORD) {
       console.error("SMTP credentials are missing");
       return NextResponse.json(
         { message: "Server configuration error: Missing SMTP credentials" },
@@ -57,8 +57,8 @@ export async function POST(req) {
       );
     }
 
-    console.log("EMAIL_SERVER_USER:", process.env.SMTP_EMAIL);
-    console.log("EMAIL_SERVER_PASSWORD:", process.env.SMTP_PASS ? "[Redacted]" : "Missing");
+    console.log("EMAIL_SERVER_USER:", process.env.EMAIL_SERVER_USER);
+    console.log("EMAIL_SERVER_PASSWORD:", process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing");
     console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
 
     // Configure nodemailer
