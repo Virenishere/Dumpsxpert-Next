@@ -46,7 +46,7 @@ const productListSchema = new mongoose.Schema(
 
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "UserInfo",
       required: false,
     },
   },

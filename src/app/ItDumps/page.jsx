@@ -67,7 +67,7 @@ export default async function ITDumpsPage() {
           {dumpsData.map((item) => (
             <Link
               key={item._id}
-              href={`/itdumps/${item.name.toLowerCase()}`}
+              href={`/itDumps/${item.name.toLowerCase()}`}
               className="bg-white border border-gray-200 rounded-lg hover:shadow-md transition-all flex flex-col items-center text-center overflow-hidden w-[160px] sm:w-[170px] md:w-[180px]"
             >
               <div className="h-28 md:h-32 w-full relative">
