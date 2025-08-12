@@ -1,7 +1,7 @@
 // import { NextResponse } from "next/server";
 // import { connectMongoDB } from "@/lib/mongo";
 // import Contact from "@/models/contactSchema";
-
+//
 // // GET: Fetch a contact submission by ID
 // export async function GET(request, { params }) {
 //   try {
