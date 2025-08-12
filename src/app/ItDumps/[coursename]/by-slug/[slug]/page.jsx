@@ -6,114 +6,15 @@ import { FaCheckCircle, FaChevronRight, FaStar, FaUser } from "react-icons/fa";
 import useCartStore from "@/store/useCartStore";
 import { Toaster, toast } from "sonner";
 import Breadcrumbs from "@/components/public/Breadcrumbs";
-
-// Mock Data
-const mockProducts = [
-  {
-    _id: "1",
-    slug: "sap-financials",
-    title: "SAP Financials Exam",
-    sapExamCode: "SAP-FIN-01",
-    category: "SAP",
-    imageUrl: "/sap.png",
-    dumpsPriceInr: 1999,
-    dumpsPriceUsd: 25,
-    dumpsMrpInr: 3999,
-    dumpsMrpUsd: 50,
-    comboPriceInr: 2999,
-    comboPriceUsd: 38,
-    comboMrpInr: 4999,
-    comboMrpUsd: 65,
-    Description:
-      "<p>Pass your SAP Financials Certification Exam easily with updated dumps.</p>",
-    longDescription:
-      "<p>These SAP dumps are verified and updated for 2025. With real exam questions, 90 days of free updates, and a money-back guarantee.</p>",
-    samplePdfUrl: "/sample-sap.pdf",
-    mainPdfUrl: "/sap-dumps.pdf",
-    updatedAt: new Date().toISOString(),
-    faqs: [
-      {
-        question: "Are these dumps updated?",
-        answer: "Yes, all dumps are updated regularly.",
-      },
-      {
-        question: "Do I get free updates?",
-        answer: "Yes, you get 90 days of free updates.",
-      },
-    ],
-  },
-  {
-    _id: "2",
-    slug: "aws-architect",
-    title: "AWS Solutions Architect",
-    sapExamCode: "AWS-SA-01",
-    category: "AWS",
-    imageUrl: "/aws.png",
-    dumpsPriceInr: 2199,
-    dumpsPriceUsd: 28,
-    dumpsMrpInr: 4399,
-    dumpsMrpUsd: 55,
-    comboPriceInr: 3199,
-    comboPriceUsd: 42,
-    comboMrpInr: 5499,
-    comboMrpUsd: 70,
-    Description:
-      "<p>Master AWS Solutions Architect Associate Exam with real questions.</p>",
-    longDescription:
-      "<p>Updated AWS questions verified by experts. Includes PDF, online exams, and 24/7 support.</p>",
-    samplePdfUrl: "/sample-aws.pdf",
-    mainPdfUrl: "/aws-dumps.pdf",
-    updatedAt: new Date().toISOString(),
-    faqs: [
-      {
-        question: "How do I get the dumps?",
-        answer: "Download instantly after purchase.",
-      },
-      {
-        question: "Is there a money-back guarantee?",
-        answer: "Yes, 100% refund if you fail.",
-      },
-    ],
-  },
-];
-
-const mockExams = {
-  _id: "exam-1",
-  duration: 90,
-  numberOfQuestions: 60,
-  priceINR: 1499,
-  mrpINR: 2499,
-  priceUSD: 20,
-  mrpUSD: 35,
-};
-
-const mockReviews = [
-  {
-    name: "Amit",
-    comment: "Very helpful dumps! Cleared my exam in one go.",
-    rating: 5,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    name: "Priya",
-    comment: "Good content but could be more detailed.",
-    rating: 4,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    name: "John",
-    comment: "Excellent support and real questions.",
-    rating: 5,
-    createdAt: new Date().toISOString(),
-  },
-];
+import axios from "axios";
 
 export default function ProductDetailsPage() {
   const { slug } = useParams();
   const router = useRouter();
-  const [product, setProduct] = useState(null);
-  const [exams] = useState(mockExams);
-  const [reviews, setReviews] = useState(mockReviews);
+
+  const [product, setProduct] = useState([]);
+  const [exams, setExams] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [reviewForm, setReviewForm] = useState({
     name: "",
     comment: "",
@@ -124,17 +25,15 @@ export default function ProductDetailsPage() {
   const [activeIndex, setActiveIndex] = useState(null);
 
   const handleAddToCart = (type = "regular") => {
-    // Create item base structure
     let item = {
       ...product,
       type,
-      title: product.title, // Important!
+      title: product.title,
       imageUrl: product.imageUrl,
       samplePdfUrl: product.samplePdfUrl,
       mainPdfUrl: product.mainPdfUrl,
     };
 
-    // Dynamically set title and price based on type
     switch (type) {
       case "regular":
         item.title = `${product.title} [PDF]`;
@@ -148,30 +47,46 @@ export default function ProductDetailsPage() {
         item.title = `${product.title} [Combo]`;
         item.price = product.comboPriceInr || product.comboPriceUsd;
         break;
-      default:
-        item.title = product.title;
-        item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
     }
 
-    // Add to cart using Zustand action
     useCartStore.getState().addToCart(item);
-
-    // Show toast success message using sonner
     toast.success(`Added ${item.title} to cart!`);
   };
 
   useEffect(() => {
-    const found = mockProducts.find((p) => p.slug === slug);
-    setProduct(found || mockProducts[0]); // fallback
-    setRelatedProducts(mockProducts.filter((p) => p.slug !== slug));
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/products");
+        const products = res.data || [];
 
-    // Average rating
-    if (mockReviews.length > 0) {
-      const total = mockReviews.reduce((sum, r) => sum + r.rating, 0);
-      setAvgRating((total / mockReviews.length).toFixed(1));
+        const found = products.find((p) => p.slug === slug);
+        setProduct(found || products[0]);
+        setRelatedProducts(products.filter((p) => p.slug !== slug));
+
+        // if exams are part of product object
+        if (found?.examDetails) {
+          setExams(found.examDetails);
+        }
+
+        // if reviews are part of product object
+        if (found?.reviews) {
+          setReviews(found.reviews);
+          if (found.reviews.length > 0) {
+            const total = found.reviews.reduce((sum, r) => sum + r.rating, 0);
+            setAvgRating((total / found.reviews.length).toFixed(1));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product data", error);
+      }
+    };
+
+    if (slug) {
+      fetchData();
     }
   }, [slug]);
 
+  console.log("Product Details:", product);
   const calculateDiscount = (mrp, price) => {
     if (!mrp || !price || mrp <= price) return 0;
     return Math.round(((mrp - price) / mrp) * 100);
@@ -201,7 +116,6 @@ export default function ProductDetailsPage() {
   };
 
   if (!product) return <div className="text-center py-20">Loading...</div>;
-
   return (
     <div className="min-h-screen mt-20 bg-white py-10 px-4 md:px-20 text-gray-800">
       <div className="max-w-5xl mx-auto mb-6">
