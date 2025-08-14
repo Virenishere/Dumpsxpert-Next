@@ -8,8 +8,16 @@ import "react-quill-new/dist/quill.snow.css"; // ✅ Load Quill CSS
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const COLORS = [
-  "#000000", "#FF0000", "#00FF00", "#0000FF", "#FFA500", "#800080", "#808080",
-  "#FFFFFF", "#FFD700", "#008080"
+  "#000000",
+  "#FF0000",
+  "#00FF00",
+  "#0000FF",
+  "#FFA500",
+  "#800080",
+  "#808080",
+  "#FFFFFF",
+  "#FFD700",
+  "#008080",
 ];
 
 const modules = {
@@ -46,7 +54,7 @@ export default function ContentEditor1() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/content1");
+        const res = await fetch("/api/content1");
         const data = await res.json();
 
         if (data && data.html) {
@@ -65,11 +73,14 @@ export default function ContentEditor1() {
   const handleSave = async () => {
     try {
       const method = contentId ? "PUT" : "POST"; // ✅ use PUT if existing
-      const res = await fetch(`http://localhost:3000/api/content1${contentId ? `/${contentId}` : ""}`, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html: content }),
-      });
+      const res = await fetch(
+        `/api/content1${contentId ? `/${contentId}` : ""}`,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ html: content }),
+        }
+      );
 
       const data = await res.json();
       if (data.success) {

@@ -34,7 +34,7 @@ const BlogPage = () => {
 
       try {
         // fetch blogs
-        const blogsRes = await axios.get("http://localhost:3000/api/blogs");
+        const blogsRes = await axios.get("/api/blogs");
         console.log("blogs api response:", blogsRes.data);
         const normalizedBlogs = normalizeBlogs(blogsRes.data);
         setBlogs(normalizedBlogs);
@@ -45,9 +45,7 @@ const BlogPage = () => {
         setRecentPosts(recent);
 
         // fetch categories
-        const categoriesRes = await axios.get(
-          "http://localhost:3000/api/blogs/blog-categories"
-        );
+        const categoriesRes = await axios.get("/api/blogs/blog-categories");
         console.log("categories api response:", categoriesRes.data);
         const normalizedCategories = normalizeBlogs(categoriesRes.data);
         setCategories(normalizedCategories);
@@ -93,7 +91,9 @@ const BlogPage = () => {
           ) : error ? (
             <p className="text-center text-red-500 col-span-full">{error}</p>
           ) : !Array.isArray(blogs) || blogs.length === 0 ? (
-            <p className="text-gray-600 italic col-span-full">No blogs found.</p>
+            <p className="text-gray-600 italic col-span-full">
+              No blogs found.
+            </p>
           ) : (
             blogs.map((blog, idx) => (
               <BlogCard

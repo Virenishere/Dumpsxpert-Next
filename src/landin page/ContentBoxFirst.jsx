@@ -8,7 +8,7 @@ const ContentBoxFirst = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/content1");
+        const res = await fetch("/api/content1");
 
         if (!res.ok) throw new Error("Failed to fetch content");
 

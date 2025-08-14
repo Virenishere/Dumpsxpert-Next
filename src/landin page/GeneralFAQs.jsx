@@ -16,7 +16,7 @@ export default function GeneralFAQs() {
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/general-faqs");
+        const res = await axios.get("/api/general-faqs");
         setFaqs(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Error fetching FAQs:", error);
