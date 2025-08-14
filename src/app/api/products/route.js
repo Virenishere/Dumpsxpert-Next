@@ -1,178 +1,161 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongo";
 import Product from "@/models/productListSchema";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
-import cloudinary from "cloudinary";
+import { uploadToCloudinaryfile, deleteFromCloudinary } from "@/lib/cloudinary";
 
-// Configure Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Helper to parse FormData
+async function parseFormData(req) {
+  const formData = await req.formData();
+  const data = {};
 
-// GET: Fetch all products with pagination and filtering
-export async function GET(request) {
+  for (const [key, value] of formData.entries()) {
+    if (value instanceof File) {
+      data[key] = value; // temporarily store File object
+    } else {
+      if (key === "faqs") {
+        try {
+          data[key] = JSON.parse(value);
+        } catch {
+          data[key] = [];
+        }
+      } else {
+        data[key] = value;
+      }
+    }
+  }
+
+  return data;
+}
+
+// GET /api/products
+export async function GET(req) {
   try {
     await connectMongoDB();
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      const product = await Product.findById(id);
+      if (!product)
+        return NextResponse.json({ message: "Product not found" }, { status: 404 });
+      return NextResponse.json({ data: product });
+    }
+
+    // list
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 10;
-    const category = searchParams.get("category");
-    const status = searchParams.get("status");
+    const skip = (page - 1) * limit;
 
-    const query = {};
-    if (category) query.category = category;
-    if (status) query.status = status;
+    const products = await Product.find().skip(skip).limit(limit).lean();
+    const total = await Product.countDocuments();
 
-    const totalDocs = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .populate("lastUpdatedBy", "name email")
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit);
-
-    return NextResponse.json(
-      {
-        message: "Products retrieved successfully",
-        data: products,
-        totalDocs,
-        totalPages: Math.ceil(totalDocs / limit),
-        currentPage: page,
-        hasNextPage: page < Math.ceil(totalDocs / limit),
-        hasPrevPage: page > 1,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      data: products,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json(
-      { message: "Server error", error: error.message },
-      { status: 500 }
-    );
+    console.error("GET Error:", error);
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
   }
 }
 
-// POST: Create a new product
-export async function POST(request) {
+// POST /api/products
+export async function POST(req) {
   try {
     await connectMongoDB();
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        { message: "Authentication required" },
-        { status: 401 }
-      );
+    const data = await parseFormData(req);
+
+    // File uploads
+    const uploads = {};
+    const fileFields = ["image", "samplePdf", "mainPdf"];
+    for (const field of fileFields) {
+      if (data[field] && data[field].size > 0) {
+        const buffer = Buffer.from(await data[field].arrayBuffer());
+        const result = await uploadToCloudinaryfile(buffer);
+        uploads[`${field}Url`] = result.secure_url;
+      }
+      delete data[field]; // Remove File object for Mongoose
     }
 
-    const formData = await request.formData();
-    const fields = [
-      "sapExamCode",
-      "title",
-      "price",
-      "category",
-      "status",
-      "action",
-      "onlinePriceInr",
-      "onlinePriceUsd",
-      "onlineMrpInr",
-      "onlineMrpUsd",
-      "comboPriceInr",
-      "comboPriceUsd",
-      "comboMrpInr",
-      "comboMrpUsd",
-      "dumpsPriceInr",
-      "dumpsPriceUsd",
-      "dumpsMrpInr",
-      "dumpsMrpUsd",
-      "sku",
-      "longDescription",
-      "Description",
-      "slug",
-      "metaTitle",
-      "metaKeywords",
-      "metaDescription",
-      "schema",
-    ];
-    const data = {};
-    fields.forEach((field) => {
-      const value = formData.get(field);
-      if (value) data[field] = value;
-    });
+    const productData = { ...data, ...uploads, faqs: data.faqs || [] };
+    const newProduct = new Product(productData);
+    await newProduct.save();
 
-    const imageFile = formData.get("image");
-    if (!imageFile) {
-      return NextResponse.json(
-        { message: "Product image is required" },
-        { status: 400 }
-      );
-    }
-
-    const imageResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.v2.uploader.upload_stream(
-        { folder: "products" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      imageFile.stream().pipe(stream);
-    });
-
-    let samplePdfUrl = "";
-    const samplePdfFile = formData.get("samplePdf");
-    if (samplePdfFile) {
-      const samplePdfResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.v2.uploader.upload_stream(
-          { resource_type: "raw", folder: "product_pdfs" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        samplePdfFile.stream().pipe(stream);
-      });
-      samplePdfUrl = samplePdfResult.secure_url;
-    }
-
-    let mainPdfUrl = "";
-    const mainPdfFile = formData.get("mainPdf");
-    if (mainPdfFile) {
-      const mainPdfResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.v2.uploader.upload_stream(
-          { resource_type: "raw", folder: "product_pdfs" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        mainPdfFile.stream().pipe(stream);
-      });
-      mainPdfUrl = mainPdfResult.secure_url;
-    }
-
-    const newProduct = new Product({
-      ...data,
-      imageUrl: imageResult.secure_url,
-      samplePdfUrl,
-      mainPdfUrl,
-      lastUpdatedBy: session.user.id,
-    });
-
-    const saved = await newProduct.save();
-    return NextResponse.json(
-      { message: "Product created successfully", data: saved },
-      { status: 201 }
-    );
+    return NextResponse.json({ message: "Product created successfully", data: newProduct }, { status: 201 });
   } catch (error) {
-    console.error("Error creating product:", error);
-    return NextResponse.json(
-      {
-        message: "Server error during product creation",
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    console.error("POST Error:", error);
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+  }
+}
+
+// PUT /api/products
+export async function PUT(req) {
+  try {
+    await connectMongoDB();
+    const data = await parseFormData(req);
+    const id = data._id;
+    if (!id) return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
+
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) return NextResponse.json({ message: "Product not found" }, { status: 404 });
+
+    const fileFields = ["image", "samplePdf", "mainPdf"];
+    const uploads = {};
+
+    // Upload new files if present
+    for (const field of fileFields) {
+      if (data[field] && data[field].size > 0) {
+        const oldUrl = existingProduct[`${field}Url`];
+        if (oldUrl) {
+          const publicId = oldUrl.split("/").pop().split(".")[0];
+          await deleteFromCloudinary(publicId);
+        }
+
+        const buffer = Buffer.from(await data[field].arrayBuffer());
+        const result = await uploadToCloudinaryfile(buffer);
+        uploads[`${field}Url`] = result.secure_url;
+      }
+      delete data[field];
+    }
+
+    const updateData = { ...data, ...uploads, faqs: data.faqs || [] };
+    delete updateData._id;
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+
+    return NextResponse.json({ message: "Product updated successfully", data: updatedProduct });
+  } catch (error) {
+    console.error("PUT Error:", error);
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE /api/products
+export async function DELETE(req) {
+  try {
+    await connectMongoDB();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ message: "Product ID is required" }, { status: 400 });
+
+    const product = await Product.findById(id);
+    if (!product) return NextResponse.json({ message: "Product not found" }, { status: 404 });
+
+    // Delete associated files
+    const fileFields = ["imageUrl", "samplePdfUrl", "mainPdfUrl"];
+    for (const field of fileFields) {
+      if (product[field]) {
+        const publicId = product[field].split("/").pop().split(".")[0];
+        await deleteFromCloudinary(publicId);
+      }
+    }
+
+    await Product.findByIdAndDelete(id);
+    return NextResponse.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("DELETE Error:", error);
+    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import cloudinary from 'cloudinary';
-
+import {Readable} from 'stream';
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -25,6 +25,27 @@ export const uploadToCloudinary = (file) => {
     }
   });
 };
+export const uploadToCloudinaryfile = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.v2.uploader.upload_stream(
+      {
+        folder: 'products',
+        resource_type: 'auto',
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    const readable = new Readable();
+    readable.push(buffer);
+    readable.push(null);
+    readable.pipe(stream);
+  });
+};
+
+
 
 
 

@@ -1,6 +1,17 @@
 "use client";
 import { useState } from "react";
 import { FaTrash } from "react-icons/fa";
+  const handleUpload = () => {
+    if (!file) return alert("Please choose a file.");
+    // Fake upload logic
+    const newEntry = {
+      id: Date.now(),
+      name: file.name,
+    };
+    setSitemaps([...sitemaps, newEntry]);
+    setFile(null);
+    document.getElementById("fileInput").value = null;
+  };
 
 const SEOSiteMap = () => {
   const [file, setFile] = useState(null);
@@ -15,17 +26,6 @@ const SEOSiteMap = () => {
     setFile(e.target.files[0]);
   };
 
-  const handleUpload = () => {
-    if (!file) return alert("Please choose a file.");
-    // Fake upload logic
-    const newEntry = {
-      id: Date.now(),
-      name: file.name,
-    };
-    setSitemaps([...sitemaps, newEntry]);
-    setFile(null);
-    document.getElementById("fileInput").value = null;
-  };
 
   const handleDelete = (id) => {
     if (!confirm("Delete this sitemap?")) return;

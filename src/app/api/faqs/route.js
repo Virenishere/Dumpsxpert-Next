@@ -1,90 +1,143 @@
-import { NextResponse } from "next/server";
-import { connectMongoDB } from "@/lib/mongo";
-import FAQ from "@/models/faqSchema";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth/authOptions";
+import { connectMongoDB } from '@/lib/mongo';
+import Product from '@/models/productListSchema';
 
-// GET: Fetch all FAQs with filtering
-export async function GET(request) {
+export async function GET(req) {
   try {
     await connectMongoDB();
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category");
-    const isActive = searchParams.get("isActive");
-
-    const query = {};
-    if (category) query.category = category;
-    if (isActive !== null && isActive !== undefined) query.isActive = isActive === "true";
-
-    const faqs = await FAQ.find(query)
-      .populate("lastUpdatedBy", "name email")
-      .sort({ category: 1, order: 1 });
-
-    return NextResponse.json(
-      {
-        message: "FAQs retrieved successfully",
-        data: faqs,
-      },
-      { status: 200 }
-    );
+    
+    const { searchParams } = new URL(req.url);
+    const productId = searchParams.get('productId');
+    
+    if (!productId) {
+      return new Response(JSON.stringify({ 
+        message: 'Product ID is required' 
+      }), { status: 400 });
+    }
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return new Response(JSON.stringify({ 
+        message: 'Product not found' 
+      }), { status: 404 });
+    }
+    
+    return new Response(JSON.stringify({
+      faqs: product.faqs || []
+    }), { status: 200 });
   } catch (error) {
-    console.error("Error retrieving FAQs:", error);
-    return NextResponse.json(
-      {
-        message: "Server error while retrieving FAQs",
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ 
+      message: 'Server error', 
+      error: error.message 
+    }), { status: 500 });
   }
 }
 
-// POST: Create a new FAQ
-export async function POST(request) {
+export async function POST(req) {
   try {
     await connectMongoDB();
-    const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        { message: "Authentication required" },
-        { status: 401 }
-      );
+    
+    const { productId, question, answer } = await req.json();
+    
+    if (!productId || !question || !answer) {
+      return new Response(JSON.stringify({ 
+        message: 'All fields are required' 
+      }), { status: 400 });
     }
-
-    const { question, answer, category, order, isActive } = await request.json();
-    if (!question || !answer || !category) {
-      return NextResponse.json(
-        { message: "Question, answer, and category are required" },
-        { status: 400 }
-      );
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return new Response(JSON.stringify({ 
+        message: 'Product not found' 
+      }), { status: 404 });
     }
-
-    const newFAQ = new FAQ({
-      question,
-      answer,
-      category,
-      order: order || 0,
-      isActive: isActive !== undefined ? isActive : true,
-      lastUpdatedBy: session.user.id,
-    });
-
-    const savedFAQ = await newFAQ.save();
-
-    return NextResponse.json(
-      {
-        message: "FAQ created successfully",
-        data: savedFAQ,
-      },
-      { status: 201 }
-    );
+    
+    product.faqs.push({ question, answer });
+    await product.save();
+    
+    return new Response(JSON.stringify({ 
+      message: 'FAQ added successfully',
+      faq: product.faqs[product.faqs.length - 1]
+    }), { status: 201 });
   } catch (error) {
-    console.error("Error creating FAQ:", error);
-    return NextResponse.json(
-      {
-        message: "Server error during FAQ creation",    
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ 
+      message: 'Server error', 
+      error: error.message 
+    }), { status: 500 });
+  }
+}
+
+export async function PUT(req) {
+  try {
+    await connectMongoDB();
+    
+    const { productId, faqId, question, answer } = await req.json();
+    
+    if (!productId || !faqId || !question || !answer) {
+      return new Response(JSON.stringify({ 
+        message: 'All fields are required' 
+      }), { status: 400 });
+    }
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return new Response(JSON.stringify({ 
+        message: 'Product not found' 
+      }), { status: 404 });
+    }
+    
+    const faq = product.faqs.id(faqId);
+    if (!faq) {
+      return new Response(JSON.stringify({ 
+        message: 'FAQ not found' 
+      }), { status: 404 });
+    }
+    
+    faq.question = question;
+    faq.answer = answer;
+    await product.save();
+    
+    return new Response(JSON.stringify({ 
+      message: 'FAQ updated successfully'
+    }), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ 
+      message: 'Server error', 
+      error: error.message 
+    }), { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    await connectMongoDB();
+    
+    const { searchParams } = new URL(req.url);
+    const productId = searchParams.get('productId');
+    const faqId = searchParams.get('faqId');
+    
+    if (!productId || !faqId) {
+      return new Response(JSON.stringify({ 
+        message: 'Product ID and FAQ ID are required' 
+      }), { status: 400 });
+    }
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return new Response(JSON.stringify({ 
+        message: 'Product not found' 
+      }), { status: 404 });
+    }
+    
+    product.faqs.pull(faqId);
+    await product.save();
+    
+    return new Response(JSON.stringify({ 
+      message: 'FAQ deleted successfully'
+    }), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ 
+      message: 'Server error', 
+      error: error.message 
+    }), { status: 500 });
   }
 }
