@@ -187,8 +187,10 @@ export default async function HomePage() {
             <ExamDumpsSlider />
             <ContentDumpsFirst />
             <UnlockGoals />
-            <ContentDumpsSecond  />
+            
+<ContentDumpsSecond  />
             <Testimonial/>
+          
             <GeneralFAQs />
           </>
         )}

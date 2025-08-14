@@ -12,7 +12,7 @@ export async function GET() {
   }
 }
 
-// POST: /api/blog/categories/
+// // POST: /api/blog/categories/
 // export async function POST(req) {
 //   try {
 //     const formData = await req.formData();

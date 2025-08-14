@@ -14,7 +14,7 @@ const faqSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     order: {
@@ -28,7 +28,7 @@ const faqSchema = new mongoose.Schema(
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
   },
   { timestamps: true }

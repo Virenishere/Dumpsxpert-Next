@@ -3,61 +3,62 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import BlogCard from "./BlogCard";
+import axios from "axios";
 
-// 🟢 Mock Data
-const mockCategories = [
-  { _id: "1", category: "Technology" },
-  { _id: "2", category: "Education" },
-  { _id: "3", category: "Career" },
-  { _id: "4", category: "Coding" },
-];
-
-const mockBlogs = Array.from({ length: 15 }, (_, i) => ({
-  _id: `${i + 1}`,
-  slug: `blog-${i + 1}`,
-  title: `Sample Blog Post ${i + 1}`,
-  metaDescription: `This is a short description for blog post ${i + 1}.`,
-  status: "publish",
-  category: mockCategories[i % mockCategories.length].category,
-  createdAt: new Date(Date.now() - i * 10000000).toISOString(),
-  imageUrl: "https://via.placeholder.com/600x400",
-}));
+const normalizeBlogs = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.blogs)) return data.blogs;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.items)) return data.items;
+  if (typeof data === "object") {
+    for (const key of Object.keys(data)) {
+      if (Array.isArray(data[key])) return data[key];
+    }
+    return Object.values(data);
+  }
+  return [];
+};
 
 const BlogPage = () => {
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [blogs, setBlogs] = useState([]);
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Load mock categories
   useEffect(() => {
-    setCategories(mockCategories);
+    const fetchData = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        // fetch blogs
+        const blogsRes = await axios.get("/api/blogs");
+        console.log("blogs api response:", blogsRes.data);
+        const normalizedBlogs = normalizeBlogs(blogsRes.data);
+        setBlogs(normalizedBlogs);
+
+        const recent = [...normalizedBlogs]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 10);
+        setRecentPosts(recent);
+
+        // fetch categories
+        const categoriesRes = await axios.get("/api/blogs/blog-categories");
+        console.log("categories api response:", categoriesRes.data);
+        const normalizedCategories = normalizeBlogs(categoriesRes.data);
+        setCategories(normalizedCategories);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data. Check console or network tab.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
-
-  // Load mock blogs
-  useEffect(() => {
-    setLoading(true);
-    const allBlogs = mockBlogs;
-
-    const publishedBlogs = allBlogs.filter((blog) => blog.status === "publish");
-
-    const filteredBlogs = selectedCategory
-      ? publishedBlogs.filter(
-          (b) =>
-            b.category?.toLowerCase() === selectedCategory.toLowerCase()
-        )
-      : publishedBlogs;
-
-    setBlogs(filteredBlogs);
-
-    const recent = [...publishedBlogs]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 10);
-
-    setRecentPosts(recent);
-    setLoading(false);
-  }, [selectedCategory]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -69,28 +70,11 @@ const BlogPage = () => {
         }}
       >
         <h1 className="text-4xl pt-24 font-bold text-center mb-6">OUR BLOGS</h1>
-
         <div className="flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => setSelectedCategory("")}
-            className={`px-4 py-1 rounded-full border ${
-              selectedCategory === ""
-                ? "bg-white text-black font-semibold"
-                : "bg-transparent border-white"
-            }`}
-          >
-            All
-          </button>
-
           {categories.map((cat) => (
             <button
-              key={cat._id}
-              onClick={() => setSelectedCategory(cat.category)}
-              className={`px-4 py-1 rounded-full border ${
-                selectedCategory === cat.category
-                  ? "bg-white text-black font-semibold"
-                  : "bg-transparent border-white"
-              }`}
+              key={cat._id ?? cat.category}
+              className="px-4 py-1 rounded-full border bg-transparent border-white"
             >
               {cat.category}
             </button>
@@ -104,16 +88,24 @@ const BlogPage = () => {
             <p className="text-center text-gray-500 col-span-full">
               Loading blogs...
             </p>
-          ) : blogs.length === 0 ? (
-            <p className="text-gray-600 italic col-span-full">No blogs found.</p>
+          ) : error ? (
+            <p className="text-center text-red-500 col-span-full">{error}</p>
+          ) : !Array.isArray(blogs) || blogs.length === 0 ? (
+            <p className="text-gray-600 italic col-span-full">
+              No blogs found.
+            </p>
           ) : (
-            blogs.map((blog) => (
+            blogs.map((blog, idx) => (
               <BlogCard
-                key={blog._id}
+                key={blog._id ?? blog.slug ?? idx}
                 slug={blog.slug}
                 title={blog.title}
                 description={blog.metaDescription}
-                date={new Date(blog.createdAt).toLocaleDateString()}
+                date={
+                  blog.createdAt
+                    ? new Date(blog.createdAt).toLocaleDateString()
+                    : ""
+                }
                 imageUrl={blog.imageUrl}
               />
             ))
@@ -131,9 +123,9 @@ const BlogPage = () => {
             <h4 className="text-lg font-semibold mb-2">Recent Posts</h4>
             <ul className="text-sm space-y-2">
               {recentPosts.map((post) => (
-                <li key={post._id}>
+                <li key={post._id ?? post.slug}>
                   <Link
-                    href={`/blogs/${post.slug.toLowerCase()}`}
+                    href={`/blogs/${post.slug?.toLowerCase()}`}
                     className="text-blue-600 hover:underline block"
                   >
                     {post.title}

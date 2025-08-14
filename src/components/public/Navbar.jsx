@@ -22,12 +22,12 @@ const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
   { label: "IT Dumps", path: "/ItDumps", dropdownKey: "Itdumps" },
-  { label: "Blogs", path: "/blogs", dropdownKey: "blogs" },
+  { label: "Blogs", path: "blogsPages/blogs", dropdownKey: "blogs" },
   { label: "Contact Us", path: "/contact" },
 ];
 
 const dropdownData = {
-  itdumps: ["AWS", "Azure", "Google Cloud", "Salesforce", "Cisco"],
+  itDumps: ["AWS", "Azure", "Google Cloud", "Salesforce", "Cisco"],
   blogs: ["Certifications", "Study Tips", "Industry Trends", "Product Updates"],
 };
 
@@ -105,7 +105,7 @@ export default function Navbar() {
                   {dropdownData[item.dropdownKey].map((sub, i) => (
                     <li key={i}>
                       <Link
-                        href={`/itDumps/${sub
+                        href={`/ItDumps/${sub
                           .toLowerCase()
                           .replace(/\s+/g, "-")}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

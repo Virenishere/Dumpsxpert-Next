@@ -12,7 +12,7 @@ const AdminGeneralFAQs = () => {
 
   const fetchFaqs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/general-faqs", {
+      const res = await axios.get("/api/general-faqs", {
         withCredentials: true,
       });
       setFaqs(Array.isArray(res.data) ? res.data : []);
@@ -38,7 +38,7 @@ const AdminGeneralFAQs = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:8000/api/general-faqs", form, {
+      const res = await axios.post("/api/general-faqs", form, {
         withCredentials: true,
       });
       setFaqs((prev) => [...prev, res.data]);
@@ -68,7 +68,9 @@ const AdminGeneralFAQs = () => {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 text-center">Manage General FAQs</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">
+        Manage General FAQs
+      </h1>
 
       <form
         onSubmit={handleAddFaq}

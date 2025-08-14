@@ -2,7 +2,7 @@
 const nextConfig = {
     reactStrictMode: true, // ✅ Strict Mode enable
   images: {
-    domains: ['via.placeholder.com'],
+    domains: ['via.placeholder.com', 'res.cloudinary.com'],
   },
 };
 
