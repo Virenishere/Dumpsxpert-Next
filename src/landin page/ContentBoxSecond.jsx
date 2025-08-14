@@ -1,57 +1,70 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const ContentBoxSecond = () => {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/content2");
+
+        if (!res.ok) throw new Error("Failed to fetch content");
+
+        const data = await res.json();
+        setContent(data?.html || "");
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
   return (
     <section className="bg-white text-black p-6 md:p-10 rounded-lg shadow-md space-y-8">
-      <div>
-        <h2 className="text-2xl md:text-3xl font-extrabold">
-          DumpsXpert – Empowering Your Exam Success Journey
-        </h2>
-        <p className="mt-4 text-base md:text-lg">
-          With years of expertise in exam preparation resources, DumpsXpert ensures you are fully equipped to tackle any IT certification exam. 
-          Our platform is designed to reduce your study stress and maximize your score potential through real-world test simulations, expert-approved materials, and consistent performance tracking.
-        </p>
-      </div>
+      <div
+        style={{
+          lineHeight: "1.6",
+        }}
+        dangerouslySetInnerHTML={{
+          __html: content,
+        }}
+      />
 
-      <div>
-        <h3 className="text-xl md:text-2xl font-bold">
-          Why Choose DumpsXpert for Your Certification Needs?
-        </h3>
-        <p className="mt-3 text-base md:text-lg">
-          DumpsXpert is not just a dumps provider — we’re your partner in professional success. Whether you're preparing for SAP, AWS, Cisco, or other IT certifications, 
-          we provide up-to-date content and personalized learning support so you can achieve your goals with confidence.
-        </p>
-      </div>
-
-      <div>
-        <h3 className="text-xl md:text-2xl font-bold">
-          What Makes Us Different?
-        </h3>
-        <p className="mt-3 text-base md:text-lg">
-          Unlike typical dumps sites, DumpsXpert focuses on verified exam patterns, full coverage of the syllabus, and mock test environments 
-          that simulate the actual exam experience. We’re committed to helping you pass — not just memorize answers.
-        </p>
-      </div>
-
-      <div>
-        <h4 className="text-lg md:text-xl font-bold">More Benefits of Choosing DumpsXpert:</h4>
-        <ul className="list-disc pl-6 mt-3 space-y-1 text-base md:text-lg">
-          <li>
-            <strong>Real Exam Environment:</strong> Experience how it feels to take the actual exam.
-          </li>
-          <li>
-            <strong>Instant Access:</strong> Get your dumps and materials immediately after purchase.
-          </li>
-          <li>
-            <strong>Updated Daily:</strong> We keep our content fresh with the latest exam questions.
-          </li>
-          <li>
-            <strong>Money-Back Guarantee:</strong> If you don’t pass, we’ll refund you – no questions asked.
-          </li>
-        </ul>
-      </div>
+      <style jsx>{`
+        div :global(h1) {
+          font-size: 2rem;
+          font-weight: 800;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h2) {
+          font-size: 1.75rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h3) {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h4) {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-top: 0.75rem;
+          margin-bottom: 0.5rem;
+        }
+        div :global(p) {
+          font-size: 1rem;
+          margin-bottom: 1rem;
+        }
+        div :global(li) {
+          font-size: 1rem;
+          margin-bottom: 0.5rem;
+        }
+      `}</style>
     </section>
   );
 };

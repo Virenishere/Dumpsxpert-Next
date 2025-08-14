@@ -181,6 +181,14 @@ const sidebarItems = [
         label: "Manage General FAQs",
         to: "/dashboard/admin/generalFaq",
       },
+      {
+        label: "Content Section 1",
+        to: "/dashboard/admin/adminPages/ContentSection1",
+      },
+      {
+        label: "Content Section 2",
+        to: "/dashboard/admin/adminPages/ContentSection2",
+      },
     ],
   },
 ];

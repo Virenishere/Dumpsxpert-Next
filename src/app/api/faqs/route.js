@@ -52,7 +52,7 @@ export async function POST(request) {
     }
 
     const { question, answer, category, order, isActive } = await request.json();
-    if (!question || !answer || !category) {
+    if (!question || !answer ) {
       return NextResponse.json(
         { message: "Question, answer, and category are required" },
         { status: 400 }

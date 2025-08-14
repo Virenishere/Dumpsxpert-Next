@@ -1,37 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaChevronRight, FaQuestionCircle } from "react-icons/fa";
-
-const faqData = [
-  {
-    question: "What is the duration of each course?",
-    answer:
-      "Each course varies in duration: Basic (3 months), Intermediate (6 months), and Advanced (9 months).",
-  },
-  {
-    question: "Do I need prior experience to join?",
-    answer:
-      "No prior experience is required for the Basic course. Intermediate and Advanced may need some knowledge.",
-  },
-  {
-    question: "Are there any job opportunities after the course?",
-    answer:
-      "Yes, we offer placement support and internship opportunities after course completion.",
-  },
-  {
-    question: "Is this course available online or offline?",
-    answer:
-      "Currently, we offer offline classes only at our center in Bageshwar, Uttarakhand.",
-  },
-];
+import axios from "axios";
 
 export default function GeneralFAQs() {
+  const [faqs, setFaqs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const toggleAccordion = (index) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/general-faqs");
+        setFaqs(Array.isArray(res.data) ? res.data : []);
+      } catch (error) {
+        console.error("Error fetching FAQs:", error);
+        setFaqs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFaqs();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="w-full py-16 px-4 md:px-12 text-center">
+        <p>Loading FAQs...</p>
+      </section>
+    );
+  }
+
+  if (faqs.length === 0) {
+    return (
+      <section className="w-full py-16 px-4 md:px-12 text-center">
+        <p>No FAQs available.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-gradient-to-br from-white to-gray-50 py-16 px-4 md:px-12">
@@ -42,12 +53,11 @@ export default function GeneralFAQs() {
         </h2>
 
         <div className="space-y-6">
-          {faqData.map((faq, index) => {
+          {faqs.map((faq, index) => {
             const isOpen = activeIndex === index;
-
             return (
               <div
-                key={index}
+                key={faq._id}
                 className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-all duration-300"
               >
                 <button

@@ -1,62 +1,70 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const ContentBoxFirst = () => {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/content1");
+
+        if (!res.ok) throw new Error("Failed to fetch content");
+
+        const data = await res.json();
+        setContent(data?.html || "");
+      } catch (error) {
+        console.error("Error fetching content:", error);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
   return (
     <section className="bg-white text-black p-6 md:p-10 rounded-lg shadow-md space-y-8">
-      <div>
-        <h2 className="text-2xl md:text-3xl font-extrabold">
-          DumpsXpert Provide - updated IT certification exams Dumps with Practice Test 2025.
-        </h2>
-        <p className="mt-4 text-base md:text-lg">
-          Expert evaluations and real-world feedback and ratings that DumpsXpert is the best IT exam dumps online
-          platform in 2025 its huge collection of all IT exam dumps, 24/7 customer support, and 100% client satisfaction
-          rate. Based on 95% of Candidate who use DumpsXpert they pass in their Certification Exam in first Attempt and
-          also recommend DumpsXpert is the best IT exam dumps website.
-        </p>
-      </div>
+      <div
+        style={{
+          lineHeight: "1.6",
+        }}
+        dangerouslySetInnerHTML={{
+          __html: content,
+        }}
+      />
 
-      <div>
-        <h3 className="text-xl md:text-2xl font-bold">
-          How DumpsXpert Helps to students Pass their Exam?
-        </h3>
-        <p className="mt-3 text-base md:text-lg">
-          We understand that in today’s fast-paced world, nobody has time to sit an hours a day preparing for an exam,
-          and DumpsXpert don’t want you to leave your job just for certification exam preparation. That’s why we make
-          Stress-free study – by providing you real exam questions so that you know what it takes for passing that exam,
-          how to structure your preparation, and by Experience a real Exam environment helps you prepare more effectively.
-        </p>
-      </div>
-
-      <div>
-        <h3 className="text-xl md:text-2xl font-bold">
-          DumpsXpert – Your way to Guaranteed IT Certification Success
-        </h3>
-        <p className="mt-3 text-base md:text-lg">
-          Why take chances with your time and money? DumpsXpert offers a Trusted route to SAP certification success with
-          carefully Expertly selected exam content to help you succeed exam and resources designed for guaranteed success.
-          With our expert team and unmatched client satisfaction, achieving your IT certification has never been easier.
-        </p>
-      </div>
-
-      <div>
-        <h4 className="text-lg md:text-xl font-bold">Benefits of Using IT Exam Dumps:</h4>
-        <ul className="list-disc pl-6 mt-3 space-y-1 text-base md:text-lg">
-          <li>
-            <strong>Pass your certification exams</strong> on the first try by using our latest exam dumps guaranteed
-          </li>
-          <li>
-            <strong>Enhance your exam knowledge</strong> and skills with practice exams questions.
-          </li>
-          <li>
-            <strong>Save valuable time and effort</strong> with 100% valid exam dumps.
-          </li>
-          <li>
-            <strong>Boost your confidence</strong> with authentic exam dumps.
-          </li>
-        </ul>
-      </div>
+      <style jsx>{`
+        div :global(h1) {
+          font-size: 2rem;
+          font-weight: 800;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h2) {
+          font-size: 1.75rem;
+          font-weight: 700;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h3) {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 1rem;
+          margin-bottom: 0.5rem;
+        }
+        div :global(h4) {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-top: 0.75rem;
+          margin-bottom: 0.5rem;
+        }
+        div :global(p) {
+          font-size: 1rem;
+          margin-bottom: 1rem;
+        }
+        div :global(li) {
+          font-size: 1rem;
+          margin-bottom: 0.5rem;
+        }
+      `}</style>
     </section>
   );
 };

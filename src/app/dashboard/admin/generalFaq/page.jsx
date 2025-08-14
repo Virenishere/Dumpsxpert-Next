@@ -12,7 +12,7 @@ const AdminGeneralFAQs = () => {
 
   const fetchFaqs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/general-faqs", {
+      const res = await axios.get("http://localhost:3000/api/general-faqs", {
         withCredentials: true,
       });
       setFaqs(Array.isArray(res.data) ? res.data : []);
@@ -38,7 +38,7 @@ const AdminGeneralFAQs = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:8000/api/general-faqs", form, {
+      const res = await axios.post("http://localhost:3000/api/general-faqs", form, {
         withCredentials: true,
       });
       setFaqs((prev) => [...prev, res.data]);
