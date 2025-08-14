@@ -22,7 +22,7 @@ const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
   { label: "IT Dumps", path: "/ItDumps", dropdownKey: "Itdumps" },
-  { label: "Blogs", path: "/blogs", dropdownKey: "blogs" },
+  { label: "Blogs", path: "blogsPages/blogs", dropdownKey: "blogs" },
   { label: "Contact Us", path: "/contact" },
 ];
 
