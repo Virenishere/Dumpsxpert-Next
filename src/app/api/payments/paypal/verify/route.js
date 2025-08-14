@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import paypal from '@paypal/checkout-server-sdk';
 import Payment from '@/models/paymentSchema';
-import User from '@/models/userSchema';
+import User from '@/models/userInfoSchema';
 
 const clientId = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET;

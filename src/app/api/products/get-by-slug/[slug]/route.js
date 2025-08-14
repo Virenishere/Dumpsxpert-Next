@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongo";
-import Product from "@/models/productSchema";
+import Product from "@/models/productListSchema";
 
 // GET: Fetch a product by slug
 export async function GET(request, { params }) {
