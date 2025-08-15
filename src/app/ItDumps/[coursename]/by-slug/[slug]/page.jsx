@@ -7,113 +7,36 @@ import useCartStore from "@/store/useCartStore";
 import { Toaster, toast } from "sonner";
 import Breadcrumbs from "@/components/public/Breadcrumbs";
 
-// Mock Data
-const mockProducts = [
-  {
-    _id: "1",
-    slug: "sap-financials",
-    title: "SAP Financials Exam",
-    sapExamCode: "SAP-FIN-01",
-    category: "SAP",
-    imageUrl: "/sap.png",
-    dumpsPriceInr: 1999,
-    dumpsPriceUsd: 25,
-    dumpsMrpInr: 3999,
-    dumpsMrpUsd: 50,
-    comboPriceInr: 2999,
-    comboPriceUsd: 38,
-    comboMrpInr: 4999,
-    comboMrpUsd: 65,
-    Description:
-      "<p>Pass your SAP Financials Certification Exam easily with updated dumps.</p>",
-    longDescription:
-      "<p>These SAP dumps are verified and updated for 2025. With real exam questions, 90 days of free updates, and a money-back guarantee.</p>",
-    samplePdfUrl: "/sample-sap.pdf",
-    mainPdfUrl: "/sap-dumps.pdf",
-    updatedAt: new Date().toISOString(),
-    faqs: [
-      {
-        question: "Are these dumps updated?",
-        answer: "Yes, all dumps are updated regularly.",
-      },
-      {
-        question: "Do I get free updates?",
-        answer: "Yes, you get 90 days of free updates.",
-      },
-    ],
-  },
-  {
-    _id: "2",
-    slug: "aws-architect",
-    title: "AWS Solutions Architect",
-    sapExamCode: "AWS-SA-01",
-    category: "AWS",
-    imageUrl: "/aws.png",
-    dumpsPriceInr: 2199,
-    dumpsPriceUsd: 28,
-    dumpsMrpInr: 4399,
-    dumpsMrpUsd: 55,
-    comboPriceInr: 3199,
-    comboPriceUsd: 42,
-    comboMrpInr: 5499,
-    comboMrpUsd: 70,
-    Description:
-      "<p>Master AWS Solutions Architect Associate Exam with real questions.</p>",
-    longDescription:
-      "<p>Updated AWS questions verified by experts. Includes PDF, online exams, and 24/7 support.</p>",
-    samplePdfUrl: "/sample-aws.pdf",
-    mainPdfUrl: "/aws-dumps.pdf",
-    updatedAt: new Date().toISOString(),
-    faqs: [
-      {
-        question: "How do I get the dumps?",
-        answer: "Download instantly after purchase.",
-      },
-      {
-        question: "Is there a money-back guarantee?",
-        answer: "Yes, 100% refund if you fail.",
-      },
-    ],
-  },
-];
+// Helper function to fetch product data
+async function fetchProduct(slug) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/products?slug=${slug}`);
+    const data = await response.json();
+    return data.data[0] || null; // Return the first product matching the slug
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
+}
 
-const mockExams = {
-  _id: "exam-1",
-  duration: 90,
-  numberOfQuestions: 60,
-  priceINR: 1499,
-  mrpINR: 2499,
-  priceUSD: 20,
-  mrpUSD: 35,
-};
-
-const mockReviews = [
-  {
-    name: "Amit",
-    comment: "Very helpful dumps! Cleared my exam in one go.",
-    rating: 5,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    name: "Priya",
-    comment: "Good content but could be more detailed.",
-    rating: 4,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    name: "John",
-    comment: "Excellent support and real questions.",
-    rating: 5,
-    createdAt: new Date().toISOString(),
-  },
-];
+// Helper function to fetch all products for related products
+async function fetchAllProducts() {
+  try {
+    const response = await fetch(`http://localhost:3000/api/products`);
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+}
 
 export default function ProductDetailsPage() {
   const { slug } = useParams();
   const router = useRouter();
   const [product, setProduct] = useState(null);
-  const [exams] = useState(mockExams);
-  const [reviews, setReviews] = useState(mockReviews);
+  const [exams, setExams] = useState(null); // Exams data (to be fetched or set as needed)
+  const [reviews, setReviews] = useState([]); // Reviews (can be fetched or managed locally)
   const [reviewForm, setReviewForm] = useState({
     name: "",
     comment: "",
@@ -124,17 +47,17 @@ export default function ProductDetailsPage() {
   const [activeIndex, setActiveIndex] = useState(null);
 
   const handleAddToCart = (type = "regular") => {
-    // Create item base structure
+    if (!product) return;
+
     let item = {
       ...product,
       type,
-      title: product.title, // Important!
+      title: product.title,
       imageUrl: product.imageUrl,
       samplePdfUrl: product.samplePdfUrl,
       mainPdfUrl: product.mainPdfUrl,
     };
 
-    // Dynamically set title and price based on type
     switch (type) {
       case "regular":
         item.title = `${product.title} [PDF]`;
@@ -153,23 +76,62 @@ export default function ProductDetailsPage() {
         item.price = product.dumpsPriceInr || product.dumpsPriceUsd;
     }
 
-    // Add to cart using Zustand action
     useCartStore.getState().addToCart(item);
-
-    // Show toast success message using sonner
     toast.success(`Added ${item.title} to cart!`);
   };
 
   useEffect(() => {
-    const found = mockProducts.find((p) => p.slug === slug);
-    setProduct(found || mockProducts[0]); // fallback
-    setRelatedProducts(mockProducts.filter((p) => p.slug !== slug));
+    async function loadData() {
+      // Fetch the product by slug
+      const productData = await fetchProduct(slug);
+      setProduct(productData);
 
-    // Average rating
-    if (mockReviews.length > 0) {
-      const total = mockReviews.reduce((sum, r) => sum + r.rating, 0);
-      setAvgRating((total / mockReviews.length).toFixed(1));
+      // Fetch related products
+      const allProducts = await fetchAllProducts();
+      setRelatedProducts(allProducts.filter((p) => p.slug !== slug));
+
+      // Mock exams data (replace with actual API if available)
+      setExams({
+        _id: "exam-1",
+        duration: 90,
+        numberOfQuestions: 60,
+        priceINR: 1499,
+        mrpINR: 2499,
+        priceUSD: 20,
+        mrpUSD: 35,
+      });
+
+      // Mock reviews (replace with actual API if available)
+      const mockReviews = [
+        {
+          name: "Amit",
+          comment: "Very helpful dumps! Cleared my exam in one go.",
+          rating: 5,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          name: "Priya",
+          comment: "Good content but could be more detailed.",
+          rating: 4,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          name: "John",
+          comment: "Excellent support and real questions.",
+          rating: 5,
+          createdAt: new Date().toISOString(),
+        },
+      ];
+      setReviews(mockReviews);
+
+      // Calculate average rating
+      if (mockReviews.length > 0) {
+        const total = mockReviews.reduce((sum, r) => sum + r.rating, 0);
+        setAvgRating((total / mockReviews.length).toFixed(1));
+      }
     }
+
+    loadData();
   }, [slug]);
 
   const calculateDiscount = (mrp, price) => {
@@ -186,8 +148,7 @@ export default function ProductDetailsPage() {
 
   const handleAddReview = (e) => {
     e.preventDefault();
-    if (!reviewForm.name || !reviewForm.comment || reviewForm.rating === 0)
-      return;
+    if (!reviewForm.name || !reviewForm.comment || reviewForm.rating === 0) return;
 
     setReviews([
       { ...reviewForm, createdAt: new Date().toISOString() },
@@ -317,7 +278,6 @@ export default function ProductDetailsPage() {
                   <button
                     onClick={() => handleAddToCart("regular")}
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold px-4 py-2 rounded"
-                    //   disabled={isAdding}
                   >
                     🛒 Add to Cart
                   </button>
@@ -340,7 +300,7 @@ export default function ProductDetailsPage() {
                     </span>
                   </p>
                   <p>
-                    ` $
+                    $
                     <span className="text-blue-400 font-bold ml-1">
                       {exams.priceUSD ?? "N/A"}
                     </span>
@@ -361,20 +321,18 @@ export default function ProductDetailsPage() {
                   >
                     Try Online Exam
                   </button>
-
                   <button
                     onClick={() => handleAddToCart("online")}
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold px-4 py-2 rounded"
-                    // disabled={isAdding}
                   >
-                    🛒 Add to Cart`
+                    🛒 Add to Cart
                   </button>
                 </div>
               </div>
             )}
 
             {/* Combo Section */}
-            {exams && exams._id && (
+            {(product.comboPriceInr || product.comboPriceUsd) && (
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-semibold">Get Combo (PDF + Online Exam)</p>
@@ -414,7 +372,6 @@ export default function ProductDetailsPage() {
                   <button
                     onClick={() => handleAddToCart("combo")}
                     className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold px-4 py-2 rounded"
-                    // disabled={isAdding}
                   >
                     🛒 Add to Cart
                   </button>
@@ -428,7 +385,7 @@ export default function ProductDetailsPage() {
             <h2 className="text-lg font-semibold mb-2">Description:</h2>
             <div
               className="prose max-w-none text-sm"
-              dangerouslySetInnerHTML={{ __html: product.Description }}
+              dangerouslySetInnerHTML={{ __html: product.Description || "No description available" }}
             />
           </div>
         </div>
@@ -439,7 +396,7 @@ export default function ProductDetailsPage() {
         <h2 className="text-lg font-semibold mb-2">Detailed Overview:</h2>
         <div
           className="prose max-w-none text-sm"
-          dangerouslySetInnerHTML={{ __html: product.longDescription }}
+          dangerouslySetInnerHTML={{ __html: product.longDescription || "No detailed overview available" }}
         />
       </div>
 
@@ -452,7 +409,7 @@ export default function ProductDetailsPage() {
       />
 
       {/* FAQs */}
-      {product.faqs && (
+      {product.faqs && product.faqs.length > 0 && (
         <FAQSection
           faqs={product.faqs}
           activeIndex={activeIndex}
@@ -461,28 +418,29 @@ export default function ProductDetailsPage() {
       )}
 
       {/* Related Products */}
-      <div className="mt-16">
-        <h2 className="text-xl font-bold mb-4">Related Products</h2>
-        <div className="flex gap-4 overflow-x-auto">
-          {relatedProducts.map((p) => (
-            <div
-              key={p._id}
-              className="min-w-[200px] bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md"
-              onClick={() => router.push(`product/`)}
-            >
-              <img
-                src={p.imageUrl}
-                alt={p.title}
-                className="h-32 object-contain w-full mb-2"
-              />
-              <h3 className="text-sm font-semibold truncate">{p.title}</h3>
-              <p className="text-xs text-gray-500 mt-1">₹ {p.dumpsPriceInr}</p>
-            </div>
-          ))}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-xl font-bold mb-4">Related Products</h2>
+          <div className="flex gap-4 overflow-x-auto">
+            {relatedProducts.map((p) => (
+              <div
+                key={p._id}
+                className="min-w-[200px] bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md"
+                onClick={() => router.push(`/product/${p.slug}`)}
+              >
+                <img
+                  src={p.imageUrl}
+                  alt={p.title}
+                  className="h-32 object-contain w-full mb-2"
+                />
+                <h3 className="text-sm font-semibold truncate">{p.title}</h3>
+                <p className="text-xs text-gray-500 mt-1">₹ {p.dumpsPriceInr}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Toast container - Place this at the root of your component tree */}
       <Toaster />
     </div>
   );
@@ -507,8 +465,6 @@ const PriceBlock = ({
     <div className="flex justify-between items-center mt-4">
       <div>
         <p className="font-semibold">{title}</p>
-
-        {/* INR Pricing */}
         <p className="text-blue-600 font-bold">
           ₹{priceInr ?? "N/A"}
           {mrpInr && (
@@ -520,8 +476,6 @@ const PriceBlock = ({
             </>
           )}
         </p>
-
-        {/* USD Pricing */}
         <p>
           <span className="text-blue-400 font-bold">${priceUsd ?? "N/A"}</span>
           {mrpUsd && (
@@ -536,7 +490,6 @@ const PriceBlock = ({
           )}
         </p>
       </div>
-
       <div className="flex items-center gap-2">
         {showSample && (
           <button
@@ -546,7 +499,6 @@ const PriceBlock = ({
             Download Sample
           </button>
         )}
-
         {onAction && (
           <button
             onClick={onAction}
@@ -571,28 +523,31 @@ function ReviewsSection({
       <div>
         <h3 className="text-lg font-semibold mb-4">User Reviews</h3>
         <div className="max-h-72 overflow-y-auto p-2">
-          {reviews.map((r, i) => (
-            <div key={i} className="border rounded p-4 shadow-sm mb-3">
-              <div className="flex items-center gap-2 mb-1">
-                {[...Array(5)].map((_, idx) => (
-                  <FaStar
-                    key={idx}
-                    className={`text-sm ${
-                      idx < r.rating ? "text-yellow-400" : "text-gray-300"
-                    }`}
-                  />
-                ))}
+          {reviews.length === 0 ? (
+            <p className="text-gray-600 text-sm">No reviews yet.</p>
+          ) : (
+            reviews.map((r, i) => (
+              <div key={i} className="border rounded p-4 shadow-sm mb-3">
+                <div className="flex items-center gap-2 mb-1">
+                  {[...Array(5)].map((_, idx) => (
+                    <FaStar
+                      key={idx}
+                      className={`text-sm ${
+                        idx < r.rating ? "text-yellow-400" : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="font-medium">{r.name}</p>
+                <p className="text-gray-600 text-sm">{r.comment}</p>
+                <p className="text-xs text-gray-400">
+                  {new Date(r.createdAt).toLocaleDateString()}
+                </p>
               </div>
-              <p className="font-medium">{r.name}</p>
-              <p className="text-gray-600 text-sm">{r.comment}</p>
-              <p className="text-xs text-gray-400">
-                {new Date(r.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
-
       <div>
         <h2 className="text-xl font-semibold mb-4">Write a Review</h2>
         <form className="grid gap-3" onSubmit={handleAddReview}>

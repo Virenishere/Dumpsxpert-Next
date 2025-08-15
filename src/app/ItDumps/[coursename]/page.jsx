@@ -1,84 +1,64 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import axios from "axios";
 import Breadcrumbs from "@/components/public/Breadcrumbs";
-
-// Simulated server data (deduped by slug)
-const allProducts = [
-  {
-    _id: "1",
-    category: "SAP",
-    title: "SAP Financials Exam",
-    sapExamCode: "SAP-FIN-01",
-    dumpsPriceInr: 1999,
-    dumpsPriceUsd: 25,
-    slug: "sap-financials-exam",
-  },
-  {
-    _id: "2",
-    category: "SAP",
-    title: "SAP Logistics Exam",
-    sapExamCode: "SAP-LOG-02",
-    dumpsPriceInr: 1799,
-    dumpsPriceUsd: 22,
-    slug: "sap-logistics-exam",
-  },
-  {
-    _id: "3",
-    category: "AWS",
-    title: "AWS Solutions Architect",
-    sapExamCode: "AWS-SA-01",
-    dumpsPriceInr: 2199,
-    dumpsPriceUsd: 28,
-    slug: "aws-solutions-architect-01",
-  },
-  {
-    _id: "4",
-    category: "AWS",
-    title: "AWS Solutions Architect",
-    sapExamCode: "AWS-SA-02",
-    dumpsPriceInr: 3199,
-    dumpsPriceUsd: 38,
-    slug: "aws-solutions-architect-02",
-  },
-];
 
 export default function CategoryPage() {
   const params = useParams();
-  const coursename = params?.coursename || ""; // Handle undefined
+  const coursename = params?.coursename || ""; // category name from URL
   const [searchTerm, setSearchTerm] = useState("");
   const [showFullText, setShowFullText] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch products from API
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await axios.get("http://localhost:3000/api/products");
+        setProducts(res.data.data || []);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  // Filter by category from route
   const categoryProducts = useMemo(() => {
-    return allProducts.filter(
-      (p) => p.category.toLowerCase() === coursename.toLowerCase()
+    return products.filter(
+      (p) => p.category?.toLowerCase() === coursename.toLowerCase()
     );
-  }, [coursename]);
+  }, [products, coursename]);
 
-  const uniqueProducts = useMemo(() => {
-    const seen = new Set();
-    return categoryProducts.filter((p) => {
-      if (seen.has(p.slug)) return false;
-      seen.add(p.slug);
-      return true;
-    });
-  }, [categoryProducts]);
-
+  // Search filter
   const filteredProducts = useMemo(() => {
-    return uniqueProducts.filter(
+    return categoryProducts.filter(
       (p) =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sapExamCode.toLowerCase().includes(searchTerm.toLowerCase())
+        p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.sapExamCode?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [uniqueProducts, searchTerm]);
+  }, [categoryProducts, searchTerm]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-28 pb-12 px-4 md:px-10 bg-gray-100">
       <div className="max-w-5xl mx-auto mb-6">
         <Breadcrumbs />
       </div>
+
       <div className="w-full max-w-5xl mx-auto">
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-800 mb-4">
           Latest {coursename.toUpperCase()} Exam Questions & Dumps [2025]
@@ -141,12 +121,15 @@ export default function CategoryPage() {
                           Starting at:
                         </span>
                         <span className="font-semibold">
-                          ₹{product.dumpsPriceInr} (${product.dumpsPriceUsd})
+                          ₹{product.dumpsPriceInr.trim()} (${product.dumpsPriceUsd})
+                        </span>
+                        <span className="block text-xs line-through text-gray-500">
+                          ₹{product.dumpsMrpInr.trim()} (${product.dumpsMrpUsd})
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
+                          href={`/itdumps/${coursename}/by-slug/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
                         >
                           See Details
@@ -178,7 +161,10 @@ export default function CategoryPage() {
                   <div className="mb-2 text-center">
                     <p className="text-sm text-gray-600">Price</p>
                     <p className="text-black font-semibold">
-                      ₹{product.dumpsPriceInr} (${product.dumpsPriceUsd})
+                      ₹{product.dumpsPriceInr.trim()} (${product.dumpsPriceUsd})
+                    </p>
+                    <p className="text-xs line-through text-gray-500">
+                      ₹{product.dumpsMrpInr.trim()} (${product.dumpsMrpUsd})
                     </p>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
