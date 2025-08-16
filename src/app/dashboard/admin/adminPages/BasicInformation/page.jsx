@@ -45,7 +45,7 @@ export default function BasicInformation() {
       headerLogo,
       breadcrumbImage,
     });
-
+// Mock saving
     setMessage("✅ Settings updated (mocked, no backend yet).");
   };
 
