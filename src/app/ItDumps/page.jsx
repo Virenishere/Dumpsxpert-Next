@@ -4,10 +4,13 @@ import { FaCheckCircle } from "react-icons/fa";
 import guarantee from "../../assets/userAssets/guaranteed.png";
 
 // Fetch from your backend API
+export const dynamic = "force-dynamic";
+
 async function getDumpsData() {
   try {
-    const res = await fetch("http://localhost:3000/api/product-categories", {
-      cache: "no-store",
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const res = await fetch(`${apiUrl}/api/product-categories`, {
+      cache: "no-store", // Remove revalidate to force dynamic rendering
     });
 
     if (!res.ok) {
@@ -16,12 +19,10 @@ async function getDumpsData() {
 
     const json = await res.json();
 
-    // Case 1: API returns array directly
     if (Array.isArray(json)) {
       return json;
     }
 
-    // Case 2: API returns { data: [...] }
     if (Array.isArray(json?.data)) {
       return json.data;
     }
