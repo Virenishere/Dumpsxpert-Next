@@ -52,4 +52,7 @@
 //       { status: 500 }
 //     );
 //   }
-// }
+// }// src/app/api/announcements/route.js
+export async function GET() {
+  return new Response("Not implemented", { status: 404 });
+}
