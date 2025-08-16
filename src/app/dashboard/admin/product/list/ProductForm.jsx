@@ -103,11 +103,11 @@ const ProductForm = ({ mode }) => {
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    
+
     // Handle file inputs
     if (["image", "samplePdf", "mainPdf"].includes(name)) {
       setForm((prev) => ({ ...prev, [name]: files[0] }));
-    } 
+    }
     // Handle regular inputs
     else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -118,13 +118,13 @@ const ProductForm = ({ mode }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     // Validate required fields
     if (!form.title || !form.sapExamCode || !form.slug || !form.category) {
       setError("Please fill in all required fields");
       return;
     }
-    
+
     setLoading(true);
 
     // Prepare form data
@@ -140,7 +140,7 @@ const ProductForm = ({ mode }) => {
       // API endpoint based on mode (add/edit)
       const url = mode === "add" ? "/api/products" : "/api/products";
       const method = mode === "add" ? "POST" : "PUT";
-      console.log(formData)
+      //console.log(formData)
       // Send request to API
       const res = await fetch(url, {
         method,
@@ -149,7 +149,7 @@ const ProductForm = ({ mode }) => {
 
       // Handle response
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || "Operation failed");
       }
@@ -167,9 +167,11 @@ const ProductForm = ({ mode }) => {
   // Delete product handler
   const handleDelete = async () => {
     if (!id) return;
-    
+
     // Confirmation dialog
-    const confirmDelete = window.confirm("Are you sure you want to delete this product?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
     if (!confirmDelete) return;
 
     try {
@@ -177,13 +179,13 @@ const ProductForm = ({ mode }) => {
       const res = await fetch(`/api/products?id=${id}`, {
         method: "DELETE",
       });
-      
+
       // Handle response
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || "Delete operation failed");
       }
-      
+
       // Redirect after successful deletion
       router.push("/dashboard/admin/product/list");
     } catch (err) {
@@ -201,9 +203,7 @@ const ProductForm = ({ mode }) => {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
       )}
 
       {/* Main Form */}
@@ -222,7 +222,7 @@ const ProductForm = ({ mode }) => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block mb-1 font-medium">Title*</label>
             <input
@@ -235,7 +235,7 @@ const ProductForm = ({ mode }) => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block mb-1 font-medium">Slug*</label>
             <input
@@ -247,7 +247,7 @@ const ProductForm = ({ mode }) => {
               className="border w-full px-4 py-2 rounded"
             />
           </div>
-          
+
           <div>
             <label className="block mb-1 font-medium">SKU*</label>
             <input
@@ -329,7 +329,7 @@ const ProductForm = ({ mode }) => {
               ))}
             </select>
           </div>
-          
+
           <div>
             <label className="block mb-1 font-medium">Status*</label>
             <select
@@ -344,7 +344,7 @@ const ProductForm = ({ mode }) => {
               <option value="inactive">Inactive</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block mb-1 font-medium">Action</label>
             <select
@@ -363,15 +363,15 @@ const ProductForm = ({ mode }) => {
         {/* File Uploads Section */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold mb-3">File Uploads</h3>
-          
+
           {/* Product Image */}
           <div className="mb-4">
             <label className="block mb-2 font-medium">Product Image</label>
             {mode === "edit" && existingFiles.imageUrl && (
               <div className="mb-2">
-                <img 
-                  src={existingFiles.imageUrl} 
-                  alt="Current product" 
+                <img
+                  src={existingFiles.imageUrl}
+                  alt="Current product"
                   className="w-32 h-32 object-contain border rounded"
                 />
                 <p className="text-sm text-gray-500 mt-1">Current Image</p>
@@ -386,15 +386,15 @@ const ProductForm = ({ mode }) => {
               required={mode === "add"}
             />
           </div>
-          
+
           {/* Sample PDF */}
           <div className="mb-4">
             <label className="block mb-2 font-medium">Sample PDF</label>
             {mode === "edit" && existingFiles.samplePdfUrl && (
               <div className="mb-2">
-                <a 
-                  href={existingFiles.samplePdfUrl} 
-                  target="_blank" 
+                <a
+                  href={existingFiles.samplePdfUrl}
+                  target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline"
                 >
@@ -410,15 +410,15 @@ const ProductForm = ({ mode }) => {
               className="w-full file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
             />
           </div>
-          
+
           {/* Main PDF */}
           <div className="mb-4">
             <label className="block mb-2 font-medium">Main PDF</label>
             {mode === "edit" && existingFiles.mainPdfUrl && (
               <div className="mb-2">
-                <a 
-                  href={existingFiles.mainPdfUrl} 
-                  target="_blank" 
+                <a
+                  href={existingFiles.mainPdfUrl}
+                  target="_blank"
                   rel="noreferrer"
                   className="text-blue-600 hover:underline"
                 >
@@ -437,29 +437,37 @@ const ProductForm = ({ mode }) => {
         </div>
 
         {/* Description Editors */}
-              <div className="mb-6">
-        <label className="block mb-2 font-medium">Description</label>
-        <CKEditor
-          editor={ClassicEditor}
-          data={form.Description}
-          onChange={(event, editor) => {
-            const data = editor.getData();
-            setForm(prev => ({ ...prev, Description: data }));
-          }}
-          config={{
-            toolbar: [
-              'heading', '|', 
-              'bold', 'italic', 'link', 'bulletedList', 'numberedList', 
-              'blockQuote', 'insertTable', 'undo', 'redo'
-            ]
-          }}
-        />
-      </div>
+        <div className="mb-6">
+          <label className="block mb-2 font-medium">Description</label>
+          <CKEditor
+            editor={ClassicEditor}
+            data={form.Description}
+            onChange={(event, editor) => {
+              const data = editor.getData();
+              setForm((prev) => ({ ...prev, Description: data }));
+            }}
+            config={{
+              toolbar: [
+                "heading",
+                "|",
+                "bold",
+                "italic",
+                "link",
+                "bulletedList",
+                "numberedList",
+                "blockQuote",
+                "insertTable",
+                "undo",
+                "redo",
+              ],
+            }}
+          />
+        </div>
 
         {/* SEO Section */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold mb-3">SEO Settings</h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block mb-1 font-medium">Meta Title</label>
@@ -471,7 +479,7 @@ const ProductForm = ({ mode }) => {
                 className="border w-full px-4 py-2 rounded"
               />
             </div>
-            
+
             <div>
               <label className="block mb-1 font-medium">Meta Keywords</label>
               <textarea
@@ -483,7 +491,7 @@ const ProductForm = ({ mode }) => {
                 className="border w-full px-4 py-2 rounded"
               />
             </div>
-            
+
             <div>
               <label className="block mb-1 font-medium">Meta Description</label>
               <textarea
@@ -495,7 +503,7 @@ const ProductForm = ({ mode }) => {
                 className="border w-full px-4 py-2 rounded"
               />
             </div>
-            
+
             <div>
               <label className="block mb-1 font-medium">Schema Markup</label>
               <textarea
@@ -519,9 +527,25 @@ const ProductForm = ({ mode }) => {
           >
             {loading ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Processing...
               </>

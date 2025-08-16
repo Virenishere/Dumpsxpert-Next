@@ -13,7 +13,9 @@ const MaintenancePage = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/maintenance-page/");
+        const res = await axios.get(
+          "http://localhost:8000/api/maintenance-page/"
+        );
         const data = res.data;
         if (data) {
           setMaintenanceMode(data.maintenanceMode);
@@ -50,7 +52,7 @@ const MaintenancePage = () => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       alert("✅ Maintenance settings updated!");
-      console.log("Update response:", res.data);
+      //console.log("Update response:", res.data);
     } catch (err) {
       console.error("Update failed:", err.message);
       alert("❌ Update failed!");

@@ -34,7 +34,7 @@ const Cart = () => {
         try {
           const response = await instance.get("/api/user/me");
           setUserId(response.data.id);
-          console.log("Fetched userId from /api/user/me:", response.data.id);
+          //console.log("Fetched userId from /api/user/me:", response.data.id);
         } catch (error) {
           console.error("Failed to fetch userId:", error);
           toast.error("Failed to fetch user details. Please try again.");
@@ -126,7 +126,7 @@ const Cart = () => {
         throw new Error("Axios instance is not initialized");
       }
 
-      console.log("Initiating Razorpay order creation:", {
+      //console.log("Initiating Razorpay order creation:", {
         amount: grandTotal,
         userId,
       });
@@ -157,8 +157,8 @@ const Cart = () => {
         description: "Purchase Exam Dumps",
         handler: async (razorpayResponse) => {
           try {
-            console.log("Verifying Razorpay payment:", razorpayResponse);
-            console.log("User ID sent to verify:", userId);
+            //console.log("Verifying Razorpay payment:", razorpayResponse);
+            //console.log("User ID sent to verify:", userId);
             const paymentVerification = await instance.post(
               "/api/payments/razorpay/verify",
               {
@@ -171,7 +171,7 @@ const Cart = () => {
             );
 
             if (paymentVerification.data.success) {
-              console.log("Creating order with:", {
+              //console.log("Creating order with:", {
                 userId,
                 items: cartItems,
                 totalAmount: grandTotal,
@@ -222,7 +222,7 @@ const Cart = () => {
         },
       };
 
-      console.log("Opening Razorpay checkout with options:", options);
+      //console.log("Opening Razorpay checkout with options:", options);
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (response) => {
         console.error("Razorpay payment failed:", response.error);

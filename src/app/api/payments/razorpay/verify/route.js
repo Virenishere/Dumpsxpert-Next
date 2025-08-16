@@ -15,7 +15,7 @@ const razorpay = new Razorpay({
 
 export async function POST(request) {
   try {
-    console.log('Route hit: /api/payments/razorpay/verify');
+    //console.log('Route hit: /api/payments/razorpay/verify');
 
     // Get session to verify authenticated user
     const session = await getServerSession(authOptions);
@@ -98,7 +98,7 @@ export async function POST(request) {
     }
 
     // Verify amount with Razorpay API
-    console.log('Fetching Razorpay payment:', razorpay_payment_id);
+    //console.log('Fetching Razorpay payment:', razorpay_payment_id);
     const payment = await razorpay.payments.fetch(razorpay_payment_id);
     if (!payment) {
       console.error('Payment not found:', razorpay_payment_id);
@@ -151,7 +151,7 @@ export async function POST(request) {
 
     const [paymentRecord, updatedUser] = await Promise.all(operations);
 
-    console.log('Payment verified and processed:', {
+    //console.log('Payment verified and processed:', {
       razorpay_payment_id,
       razorpay_order_id,
       userId,

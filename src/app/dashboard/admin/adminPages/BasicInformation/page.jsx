@@ -38,7 +38,7 @@ export default function BasicInformation() {
     e.preventDefault();
 
     // For now, just log and simulate saving
-    console.log("Updated Info:", {
+    //console.log("Updated Info:", {
       siteTitle,
       currencyDirection,
       favicon,
