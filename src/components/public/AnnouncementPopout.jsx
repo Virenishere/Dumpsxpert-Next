@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function AnnouncementPopout() {
   const [announcement, setAnnouncement] = useState(null);
@@ -9,23 +9,23 @@ export default function AnnouncementPopout() {
 
   useEffect(() => {
     // Check if popout was already shown in this session
-    const hasSeenPopout = localStorage.getItem('hasSeenAnnouncement');
+    const hasSeenPopout = localStorage.getItem("hasSeenAnnouncement");
     if (hasSeenPopout) return;
 
     // Fetch announcement data
     const fetchAnnouncement = async () => {
       try {
-        const response = await fetch('/api/announcements');
+        const response = await fetch("/api/announcements");
         const data = await response.json();
         if (data.active) {
           setAnnouncement(data);
           setTimeout(() => {
             setIsVisible(true);
-            localStorage.setItem('hasSeenAnnouncement', 'true');
+            localStorage.setItem("hasSeenAnnouncement", "true");
           }, data.delay * 1000);
         }
       } catch (error) {
-        console.error('Error fetching announcement:', error);
+        console.error("Error fetching announcement:", error);
       }
     };
 
@@ -46,8 +46,18 @@ export default function AnnouncementPopout() {
           className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
           aria-label="Close popout"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
         <div className="flex flex-col items-center">
@@ -62,7 +72,7 @@ export default function AnnouncementPopout() {
             Special Offer! Check out our latest deals!
           </p>
           <a
-            href="/itdumps" // Adjust link as needed
+            href="/ItDumps" // Adjust link as needed
             className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Shop Now

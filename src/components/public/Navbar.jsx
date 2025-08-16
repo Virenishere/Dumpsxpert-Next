@@ -21,13 +21,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
-  { label: "IT Dumps", path: "/itdumps", dropdownKey: "Itdumps" },
+  { label: "IT Dumps", path: "/ItDumps", dropdownKey: "ItDumps" },
   { label: "Blogs", path: "blogsPages/blogs", dropdownKey: "blogs" },
   { label: "Contact Us", path: "/contact" },
 ];
 
 const dropdownData = {
-  itDumps: ["AWS", "Azure", "Google Cloud", "Salesforce", "Cisco"],
+  ItDumps: ["AWS", "Azure", "Google Cloud", "Salesforce", "Cisco"],
   blogs: ["Certifications", "Study Tips", "Industry Trends", "Product Updates"],
 };
 
@@ -105,7 +105,7 @@ export default function Navbar() {
                   {dropdownData[item.dropdownKey].map((sub, i) => (
                     <li key={i}>
                       <Link
-                        href={`/itdumps/${sub
+                        href={`/ItDumps/${sub
                           .toLowerCase()
                           .replace(/\s+/g, "-")}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

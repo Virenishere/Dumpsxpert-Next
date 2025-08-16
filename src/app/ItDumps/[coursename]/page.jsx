@@ -121,7 +121,8 @@ export default function CategoryPage() {
                           Starting at:
                         </span>
                         <span className="font-semibold">
-                          ₹{product.dumpsPriceInr.trim()} (${product.dumpsPriceUsd})
+                          ₹{product.dumpsPriceInr.trim()} ($
+                          {product.dumpsPriceUsd})
                         </span>
                         <span className="block text-xs line-through text-gray-500">
                           ₹{product.dumpsMrpInr.trim()} (${product.dumpsMrpUsd})
@@ -129,7 +130,7 @@ export default function CategoryPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={`/itdumps/${coursename}/by-slug/${product.slug}`}
+                          href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
                         >
                           See Details
@@ -169,7 +170,7 @@ export default function CategoryPage() {
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <Link
-                      href={`/itdumps/${coursename}/by-slug/${product.slug}`}
+                      href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
                       className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-sm text-center py-2 rounded-md shadow"
                     >
                       See Details
