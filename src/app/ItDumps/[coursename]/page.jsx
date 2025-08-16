@@ -129,7 +129,7 @@ export default function CategoryPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={`/itdumps/${coursename}/by-slug/${product.slug}`}
+                          href={`/ItDumps/${coursename}/by-slug/${product.slug}`}
                           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-sm"
                         >
                           See Details
