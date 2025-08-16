@@ -1,10 +1,10 @@
-// import { NextResponse } from "next/server";
-// import { connectMongoDB } from "@/lib/mongo";
+import { NextResponse } from "next/server";
+import { connectMongoDB } from "@/lib/mongo";
 // import AnnouncementSetting from "@/models/AnnouncementSetting";
-// import { deleteFromCloudinary } from "@/utils/cloudinary";
-// import { getServerSession } from "next-auth/next";
+import { deleteFromCloudinary } from "@/utils/cloudinary";
+import { getServerSession } from "next-auth/next";
 // import { authOptions } from "@/lib/auth/authOptions";
-// import cloudinary from "cloudinary";
+import cloudinary from "cloudinary";
 
 // // Configure Cloudinary
 // cloudinary.v2.config({
@@ -13,24 +13,24 @@
 //   api_secret: process.env.CLOUDINARY_API_SECRET,
 // });
 
-// // GET: Fetch the latest announcement setting
-// export async function GET() {
-//   try {
-//     await connectMongoDB();
-//     const setting = await AnnouncementSetting.findOne()
-//       .sort({ createdAt: -1 })
-//       .populate("lastUpdatedBy", "name email");
-//     return NextResponse.json(setting || {}, { status: 200 });
-//   } catch (error) {
-//     console.error("Error fetching announcement:", error);
-//     return NextResponse.json(
-//       { message: "Internal server error", error: error.message },
-//       { status: 500 }
-//     );
-//   }
-// }
+// GET: Fetch the latest announcement setting
+export async function GET() {
+  try {
+    await connectMongoDB();
+    // const setting = await AnnouncementSetting.findOne()
+    //   .sort({ createdAt: -1 })
+    //   .populate("lastUpdatedBy", "name email");
+    // return NextResponse.json(setting || {}, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching announcement:", error);
+    return NextResponse.json(
+      { message: "Internal server error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
 
-// // POST: Update or create announcement setting
+// POST: Update or create announcement setting
 // export async function POST(request) {
 //   try {
 //     await connectMongoDB();
