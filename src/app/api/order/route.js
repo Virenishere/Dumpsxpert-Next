@@ -8,11 +8,11 @@ import { authOptions } from "@/lib/auth/authOptions";
 
 export async function POST(request) {
   try {
-    //console.log('Route hit: /api/order [POST]');
+    console.log("Route hit: /api/order [POST]");
     await connectMongoDB();
 
     const session = await getServerSession(authOptions);
-    //console.log('Session:', session);
+    console.log("Session:", session);
 
     if (!session || !session.user?.id) {
       console.error("Unauthorized: No valid session", {
@@ -117,7 +117,11 @@ export async function POST(request) {
       status: "completed",
     });
 
-    //console.log('Order created:', { orderId: order._id, orderNumber: order.orderNumber, userId });
+    console.log("Order created:", {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      userId,
+    });
     return NextResponse.json({
       success: true,
       orderId: order._id,
@@ -137,11 +141,11 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    //console.log('Route hit: /api/order [GET]');
+    console.log("Route hit: /api/order [GET]");
     await connectMongoDB();
 
     const session = await getServerSession(authOptions);
-    //console.log('Session:', session);
+    console.log("Session:", session);
 
     if (!session || !session.user?.id) {
       console.error("Unauthorized: No valid session", {
@@ -192,11 +196,14 @@ export async function GET(request) {
       .lean();
 
     if (!orders || orders.length === 0) {
-      //console.log('No orders found', { userId: userId || 'all' });
+      console.log("No orders found", { userId: userId || "all" });
       return NextResponse.json({ orders: [] });
     }
 
-    //console.log('Orders retrieved:', { count: orders.length, userId: userId || 'all' });
+    console.log("Orders retrieved:", {
+      count: orders.length,
+      userId: userId || "all",
+    });
     return NextResponse.json({ orders });
   } catch (error) {
     console.error("Order retrieval failed:", {

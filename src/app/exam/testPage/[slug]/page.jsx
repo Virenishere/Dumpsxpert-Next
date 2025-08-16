@@ -33,7 +33,7 @@ export default function TestPage({ params }) {
           `http://localhost:8000/api/questions/byProductSlug/${slug}`
         );
         const data = res.data;
-        //console.log("📦 Fetched question data:", data);
+        console.log("📦 Fetched question data:", data);
 
         if (!data.success || !Array.isArray(data.data)) {
           throw new Error("Invalid question format");
@@ -57,7 +57,7 @@ export default function TestPage({ params }) {
           `http://localhost:8000/api/exams/byslug/${slug}`
         );
         const fetchedExam = res.data;
-        //console.log("✅ Exam fetched:", fetchedExam);
+        console.log("✅ Exam fetched:", fetchedExam);
         setExam(fetchedExam[0]);
       } catch (error) {
         console.error("❌ Failed to fetch exam:", error);
@@ -65,7 +65,7 @@ export default function TestPage({ params }) {
     };
 
     if (slug) {
-      //console.log("🧪 slug:", slug);
+      console.log("🧪 slug:", slug);
       fetchExam();
     }
   }, [slug]);
@@ -73,8 +73,8 @@ export default function TestPage({ params }) {
   // Set timer
   useEffect(() => {
     if (exam && Object.keys(exam).length > 0) {
-      //console.log("✅ Updated exam state:", exam);
-      //console.log("timer", exam.sampleDuration);
+      console.log("✅ Updated exam state:", exam);
+      console.log("timer", exam.sampleDuration);
       setTimeLeft(exam.sampleDuration * 60); // seconds
     }
   }, [exam, slug]);

@@ -140,7 +140,7 @@ const ProductForm = ({ mode }) => {
       // API endpoint based on mode (add/edit)
       const url = mode === "add" ? "/api/products" : "/api/products";
       const method = mode === "add" ? "POST" : "PUT";
-      //console.log(formData)
+      console.log(formData);
       // Send request to API
       const res = await fetch(url, {
         method,

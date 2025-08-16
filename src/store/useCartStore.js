@@ -5,7 +5,7 @@ let useCartStoreBase = (set, get) => ({
   cartItems: [],
 
   addToCart: (item) => {
-    //console.log("Incoming Item:", item);
+    console.log("Incoming Item:", item);
     const existing = get().cartItems.find(
       (i) => i._id === item._id && i.type === item.type
     );

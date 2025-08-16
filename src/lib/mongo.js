@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
 if (!uri) throw new Error("Missing MongoDB URI");
-//console.log(uri);
+console.log(uri);
 // Mongoose Connection
 let cached = global.mongoose;
 if (!cached) cached = global.mongoose = { conn: null };

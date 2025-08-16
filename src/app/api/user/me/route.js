@@ -6,7 +6,7 @@ import UserInfo from "@/models/userInfoSchema";
 
 export async function GET() {
   try {
-    //console.log('Route hit: /api/user/me');
+    console.log("Route hit: /api/user/me");
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.email) {
       console.error("Unauthorized: No valid session");

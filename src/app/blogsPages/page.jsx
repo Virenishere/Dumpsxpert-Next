@@ -35,7 +35,7 @@ const BlogPage = () => {
       try {
         // fetch blogs
         const blogsRes = await axios.get("/api/blogs");
-        //console.log("blogs api response:", blogsRes.data);
+        console.log("blogs api response:", blogsRes.data);
         const normalizedBlogs = normalizeBlogs(blogsRes.data);
         setBlogs(normalizedBlogs);
 
@@ -46,7 +46,7 @@ const BlogPage = () => {
 
         // fetch categories
         const categoriesRes = await axios.get("/api/blogs/blog-categories");
-        //console.log("categories api response:", categoriesRes.data);
+        console.log("categories api response:", categoriesRes.data);
         const normalizedCategories = normalizeBlogs(categoriesRes.data);
         setCategories(normalizedCategories);
       } catch (err) {

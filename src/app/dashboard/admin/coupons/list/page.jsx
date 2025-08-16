@@ -11,7 +11,7 @@ const CouponList = () => {
   const fetchCoupons = async () => {
     try {
       const res = await axios.get("http://localhost:8000/api/coupons");
-      //console.log("Fetched coupons:", res.data);
+      console.log("Fetched coupons:", res.data);
       setCoupons(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching coupons:", err);

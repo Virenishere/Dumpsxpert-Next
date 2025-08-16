@@ -9,7 +9,7 @@ const razorpay = new Razorpay({
 
 export async function POST(request) {
   try {
-    //console.log('Route hit: /api/payments/razorpay/create-order');
+    console.log("Route hit: /api/payments/razorpay/create-order");
     const body = await request.json();
     const amount = Number(body.amount);
     const currency = body.currency || "INR";

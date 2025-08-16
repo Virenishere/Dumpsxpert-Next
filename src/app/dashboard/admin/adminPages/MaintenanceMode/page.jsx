@@ -52,7 +52,7 @@ const MaintenancePage = () => {
         { headers: { "Content-Type": "multipart/form-data" } }
       );
       alert("✅ Maintenance settings updated!");
-      //console.log("Update response:", res.data);
+      console.log("Update response:", res.data);
     } catch (err) {
       console.error("Update failed:", err.message);
       alert("❌ Update failed!");

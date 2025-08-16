@@ -8,7 +8,7 @@ export async function POST(req) {
   try {
     const { email } = await req.json();
 
-    //console.log("Received OTP send request with email:", email);
+    console.log("Received OTP send request with email:", email);
 
     // Validate email format
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -57,9 +57,12 @@ export async function POST(req) {
       );
     }
 
-    //console.log("EMAIL_SERVER_USER:", process.env.EMAIL_SERVER_USER);
-    //console.log("EMAIL_SERVER_PASSWORD:", process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing");
-    //console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
+    console.log("EMAIL_SERVER_USER:", process.env.EMAIL_SERVER_USER);
+    console.log(
+      "EMAIL_SERVER_PASSWORD:",
+      process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing"
+    );
+    console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
 
     // Configure nodemailer
     const transporter = nodemailer.createTransport({
@@ -89,7 +92,7 @@ export async function POST(req) {
       `,
     });
 
-    //console.log("OTP sent successfully to:", email);
+    console.log("OTP sent successfully to:", email);
     return NextResponse.json({ message: "OTP sent successfully" });
   } catch (error) {
     console.error("Send OTP error:", {

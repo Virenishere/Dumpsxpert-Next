@@ -90,7 +90,7 @@ export async function POST(request) {
 
     await Promise.all(operations);
 
-    //console.log('Payment verified and processed:', { orderId, userId });
+    console.log("Payment verified and processed:", { orderId, userId });
     return NextResponse.json({
       success: true,
       paymentId: orderId,

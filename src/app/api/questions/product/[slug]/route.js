@@ -38,7 +38,7 @@ export async function GET(req, { params }) {
     // Fetch questions for the examId, only sample questions
     const questions = await Question.find({ examId: exam._id, isSample: true });
 
-    //console.log('Fetched questions for product:', slug, questions.length);
+    console.log("Fetched questions for product:", slug, questions.length);
     return new Response(JSON.stringify({ success: true, data: questions }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
