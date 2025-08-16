@@ -6,6 +6,14 @@ import mongoose from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/authOptions";
 
+// Define authUsers model to ensure it's registered before use
+const authUserModel = mongoose.models.authUsers || mongoose.model('authUsers', new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  name: { type: String },
+  image: { type: String },
+  emailVerified: { type: Date },
+}, { collection: 'authUsers' }));
+
 export async function POST(request) {
   try {
     console.log("Route hit: /api/order [POST]");
