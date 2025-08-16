@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongo";
 // import AnnouncementSetting from "@/models/AnnouncementSetting";
-import { deleteFromCloudinary } from "@/utils/cloudinary";
+// import { deleteFromCloudinary } from "@/utils/cloudinary";
 import { getServerSession } from "next-auth/next";
 // import { authOptions } from "@/lib/auth/authOptions";
 import cloudinary from "cloudinary";
