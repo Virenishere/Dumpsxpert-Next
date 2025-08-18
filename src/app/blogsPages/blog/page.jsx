@@ -92,7 +92,9 @@ const BlogDetail = () => {
                     />
                   )}
                   <CardContent className="p-3">
-                    <h3 className="text-md font-semibold mb-1 line-clamp-2">{b.title}</h3>
+                    <h3 className="text-md font-semibold mb-1 line-clamp-2">
+                      {b.title}
+                    </h3>
                     <p className="text-xs text-gray-500 mb-1">
                       {new Date(b.createdAt).toLocaleDateString("en-IN", {
                         year: "numeric",

@@ -3,17 +3,17 @@ import { connectMongoDB } from "@/lib/mongo";
 import BlogCategory from "@/models/blogCategorySchema";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 
-// GET: Fetch a blog category by ID
+// GET: Fetch a blog category by slug
 export async function GET(request, { params }) {
   try {
     await connectMongoDB();
-    const category = await BlogCategory.findById(params.id);
+    const category = await BlogCategory.findOne({ slug: params.slug }); // ✅ use slug
     if (!category) {
       return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
     return NextResponse.json(category, { status: 200 });
   } catch (error) {
-    console.error("❌ Error in getBlogCategoryById:", error);
+    console.error("❌ Error in getBlogCategoryBySlug:", error);
     return NextResponse.json(
       { error: "Internal Server Error", details: error.message },
       { status: 500 }
@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT: Update a blog category
+// PUT: Update a blog category by slug
 export async function PUT(request, { params }) {
   try {
     await connectMongoDB();
@@ -44,20 +44,21 @@ export async function PUT(request, { params }) {
     };
 
     if (file) {
-      const oldCategory = await BlogCategory.findById(params.id);
+      const oldCategory = await BlogCategory.findOne({ slug: params.slug });
       if (oldCategory && oldCategory.imagePublicId) {
         await deleteFromCloudinary(oldCategory.imagePublicId);
       }
-      // Note: In a real implementation, upload the file to Cloudinary here
-      updateData.imageUrl = formData.get("imageUrl"); // Replace with Cloudinary upload logic
-      updateData.imagePublicId = formData.get("imagePublicId"); // Replace with Cloudinary public ID
+      // In real case, upload to Cloudinary here
+      updateData.imageUrl = formData.get("imageUrl");
+      updateData.imagePublicId = formData.get("imagePublicId");
     }
 
-    const updatedCategory = await BlogCategory.findByIdAndUpdate(
-      params.id,
+    const updatedCategory = await BlogCategory.findOneAndUpdate(
+      { slug: params.slug }, // ✅ update by slug
       updateData,
       { new: true, runValidators: true }
     );
+
     if (!updatedCategory) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
@@ -72,11 +73,11 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE: Delete a blog category
+// DELETE: Delete a blog category by slug
 export async function DELETE(request, { params }) {
   try {
     await connectMongoDB();
-    const category = await BlogCategory.findById(params.id);
+    const category = await BlogCategory.findOne({ slug: params.slug });
     if (!category) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
     }
@@ -85,7 +86,8 @@ export async function DELETE(request, { params }) {
       await deleteFromCloudinary(category.imagePublicId);
     }
 
-    await BlogCategory.findByIdAndDelete(params.id);
+    await BlogCategory.findOneAndDelete({ slug: params.slug }); // ✅ delete by slug
+
     return NextResponse.json(
       { message: "Category deleted successfully" },
       { status: 200 }
