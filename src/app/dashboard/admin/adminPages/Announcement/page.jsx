@@ -44,7 +44,7 @@ const Announcement = () => {
 
     try {
       await axios.post(
-        "http://localhost:8000/api/announcement/update",
+        "/api/announcement/update",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

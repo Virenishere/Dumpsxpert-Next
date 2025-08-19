@@ -14,7 +14,7 @@ const BlogDetail = ({ params }) => {
       try {
         // fetch single blog detail
         const res = await fetch(
-          `http://localhost:3000/api/blogs/slug/${params.slug}`,
+          `/api/blogs/slug/${params.slug}`,
           { cache: "no-store" }
         );
         const data = await res.json();
@@ -25,7 +25,7 @@ const BlogDetail = ({ params }) => {
 
         // fetch recent blogs (for sidebar)
         const recentRes = await fetch(
-          `http://localhost:3000/api/blogs?limit=5`,
+          `/api/blogs?limit=5`,
           { cache: "no-store" }
         );
         const recentData = await recentRes.json();

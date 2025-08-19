@@ -17,7 +17,7 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/blogs/blog-categories`);
+        const res = await axios.get(`/api/blogs/blog-categories`);
         const valid = res.data?.filter((c) => !!c.category);
         setCategories(valid);
       } catch (err) {
@@ -32,7 +32,7 @@ useEffect(() => {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}/api/blogs`);
+      const res = await axios.get(`/api/blogs`);
       const allBlogs = res.data?.data || []; // ✅ fix
 
       // Filter by selected category
