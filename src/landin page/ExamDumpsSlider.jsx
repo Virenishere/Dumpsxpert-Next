@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import router for navigation
+import { useRouter } from "next/navigation"; 
 import { Calendar, FolderOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ export default function ExamDumpsSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slidesPerView, setSlidesPerView] = useState(3);
   const trackRef = useRef(null);
-  const router = useRouter(); // ✅ router hook
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -20,11 +20,9 @@ export default function ExamDumpsSlider() {
         const res = await fetch("/api/products");
         const data = await res.json();
 
-        // ✅ Normalize API response
+        // ✅ Fix: extract blogs from data.data
         if (Array.isArray(data)) {
           setProducts(data);
-        } else if (Array.isArray(data.products)) {
-          setProducts(data.products);
         } else if (Array.isArray(data.data)) {
           setProducts(data.data);
         } else {
@@ -157,11 +155,11 @@ export default function ExamDumpsSlider() {
                         <FolderOpen className="w-4 h-4" /> Category:{" "}
                         {dump.category || "N/A"}
                       </div>
-{/* updted this stuff */}
-                      {/* ✅ Route to blogPages/blog/[slug] */}
+
+                      {/* ✅ Route to blog by slug */}
                       <Button
                         onClick={() =>
-                          router.push(`/ItDumps/aws/by-slug/${dump.slug}`)
+                          router.push(`/ItDumps/${dump.category}/by-slug/${dump.slug}`)
                         }
                         className="mt-auto w-full bg-[#1A2E33] hover:bg-[#19332d] text-white"
                       >
