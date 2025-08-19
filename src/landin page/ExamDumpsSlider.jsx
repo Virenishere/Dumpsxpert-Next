@@ -157,7 +157,7 @@ export default function ExamDumpsSlider() {
                         <FolderOpen className="w-4 h-4" /> Category:{" "}
                         {dump.category || "N/A"}
                       </div>
-
+{/* updted this stuff */}
                       {/* ✅ Route to blogPages/blog/[slug] */}
                       <Button
                         onClick={() =>
