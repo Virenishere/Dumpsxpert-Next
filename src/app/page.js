@@ -1,4 +1,4 @@
-// app/page.tsx or app/home/page.tsx
+// app/page.jsx
 
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -10,48 +10,34 @@ import banner from "@/assets/landingassets/banner.webp";
 import ExamDumpsSlider from "@/landin page/ExamDumpsSlider";
 import UnlockGoals from "@/landin page/UnlockGoals";
 import GeneralFAQs from "@/landin page/GeneralFAQs";
-import AdminDashboard from "@/app/dashboard/admin/page.jsx"; // Adjust the import path as necessary
-import StudentDashboard from "@/app/dashboard/student/studentPages/StudentDashboard"; // Adjust the import path as necessary
-import AdminLayout from "@/app/dashboard/admin/layout"; // Adjust the import path as necessary
-import StudentLayout from "@/app/dashboard/student/layout"; // Adjust the import path as necessary
-
 import ContentDumpsFirst from "@/landin page/ContentBoxFirst";
 import ContentDumpsSecond from "@/landin page/ContentBoxSecond";
 import Testimonial from "@/landin page/Testimonial";
 
 export const metadata = {
   title: "Dumpsxpert – #1 IT Exam Dumps Provider",
-  description: "Pass your IT certifications in first attempt with trusted exam dumps, practice tests & PDF guides by Dumpsxpert.",
+  description:
+    "Pass your IT certifications in first attempt with trusted exam dumps, practice tests & PDF guides by Dumpsxpert.",
 };
 
+// ✅ Server Component (no "use client")
 export default async function HomePage() {
-  const categories = [
-    { _id: "all", category: "All" },
-    { _id: "cert", category: "Certifications" },
-    { _id: "update", category: "Updates" },
-  ];
+  // fetch categories
+  const categoriesRes = await fetch(
+    `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blogs/blog-categories`,
+    { cache: "no-store" }
+  );
+  const categories = await categoriesRes.json();
 
-  const blogs = [
-    {
-      _id: "1",
-      slug: "pass-it-certification-first-try",
-      title: "How to Pass IT Certification in Your First Attempt",
-      metaDescription: "Top techniques and strategies to ensure exam success with confidence.",
-    },
-    {
-      _id: "2",
-      slug: "free-exam-prep-checklist",
-      title: "Free Exam Preparation Checklist",
-      metaDescription: "Download our ultimate checklist to stay on track with your study goals.",
-    },
-    {
-      _id: "3",
-      slug: "compare-pdf-vs-online-tests",
-      title: "PDF Dumps vs Online Practice – What Works Best?",
-      metaDescription: "A side-by-side comparison to help you choose the right learning method.",
-    },
-  ];
+  // fetch blogs
+  const blogsRes = await fetch(
+    `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blogs`,
+    { cache: "no-store" }
+  );
+  const blogsData = await blogsRes.json();
+  const blogs = blogsData?.data || [];
 
+  // static dumps
   const dumps = [
     { _id: "d1", name: "AWS Certified Solutions Architect" },
     { _id: "d2", name: "Microsoft Azure Fundamentals" },
@@ -68,18 +54,21 @@ export default async function HomePage() {
       <section className="w-full bg-white pt-24 px-4 sm:px-6 lg:px-20 flex flex-col-reverse lg:flex-row items-center justify-between gap-10">
         <div className="w-full lg:w-1/2 mt-10 lg:mt-0">
           <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
-            Pass Your IT Certification Exam <span className="text-[#13677c]">On the First Try</span>
+            Pass Your IT Certification Exam{" "}
+            <span className="text-[#13677c]">On the First Try</span>
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6">
-            Dumpsxpert offers industry-validated study materials, real exam dumps, and browser-based practice tests to help you get certified faster — and smarter.
+            Dumpsxpert offers industry-validated study materials, real exam
+            dumps, and browser-based practice tests to help you get certified
+            faster — and smarter.
           </p>
           <ul className="space-y-3 text-gray-700 mb-6 text-sm sm:text-base">
             {[
-              " 100% Verified & Up-to-Date Dumps",
-              " 100% Money Back Guarantee",
-              " 24/7 Expert Support",
-              " Free Updates for 3 Months",
-              " Realistic Practice Test Interface",
+              "100% Verified & Up-to-Date Dumps",
+              "100% Money Back Guarantee",
+              "24/7 Expert Support",
+              "Free Updates for 3 Months",
+              "Realistic Practice Test Interface",
             ].map((item, index) => (
               <li key={index} className="flex items-start gap-2">
                 <div className="bg-[#7aa93c] rounded-full p-1.5 flex items-center justify-center w-7 h-7">
@@ -90,7 +79,8 @@ export default async function HomePage() {
             ))}
           </ul>
           <p className="text-sm sm:text-base text-gray-500">
-            ⭐ Trusted by over <strong>50,000 IT professionals</strong> worldwide. Rated <strong>4.8/5</strong> by verified users.
+            ⭐ Trusted by over <strong>50,000 IT professionals</strong>{" "}
+            worldwide. Rated <strong>4.8/5</strong> by verified users.
           </p>
         </div>
 
@@ -130,71 +120,108 @@ export default async function HomePage() {
       </section>
 
       {/* === Blog Section === */}
-      <section className="py-20 px-4 md:px-20 bg-white">
-        <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-          Latest Exam Tips & Insights
-        </h2>
+{/* === Blog Section === */}
+<section className="py-20 px-4 md:px-20 bg-white">
+  <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
+    Latest Exam Tips & Insights
+  </h2>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
-          {categories.map((cat) => (
-            <Button
-              key={cat._id}
-              variant="outline"
-              asChild
-              className="capitalize rounded-full"
-            >
-              <Link href={`/?category=${encodeURIComponent(cat.category.toLowerCase())}`}>
-                {cat.category}
-              </Link>
-            </Button>
-          ))}
-        </div>
+  {/* Category Filter */}
+  <div className="flex flex-wrap justify-center gap-3 mb-10">
+    {categories?.map((cat) => (
+      <Button
+        key={cat._id}
+        variant="outline"
+        asChild
+        className="capitalize rounded-full"
+      >
+        <Link
+          href={`/?category=${encodeURIComponent(cat.category.toLowerCase())}`}
+        >
+          {cat.category}
+        </Link>
+      </Button>
+    ))}
+  </div>
 
-        {blogs.length === 0 ? (
-          <p className="text-center text-gray-500">No blogs found.</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogs.map((blog) => (
-                <Card
-                  key={blog._id}
-                  className="hover:shadow-md transition cursor-pointer"
-                >
-                  <Link href={`/blogs/${blog.slug}`}>
-                    <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-1">
-                        {blog.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {blog.metaDescription}
-                      </p>
-                    </CardContent>
-                  </Link>
-                </Card>
-              ))}
+{/* Blog Cards */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {blogs.length === 0 ? (
+    <p className="text-center text-gray-500 col-span-full">
+      No blogs found.
+    </p>
+  ) : (
+    blogs
+      .slice() // copy array so reverse doesn’t mutate
+      .reverse() // make sure we get most recent first
+      .slice(0, 6) // limit to 6 blogs
+      .map((blog) => (
+        <Link
+          key={blog._id}
+          href={`/blogsPages/blog/${blog.slug || blog._id}`}
+        >
+          <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col h-full">
+            {/* Blog Image */}
+            {blog.imageUrl && (
+              <img
+                src={blog.imageUrl}
+                alt={blog.title || blog.sectionName}
+                className="w-full h-48 object-cover"
+              />
+            )}
+
+            {/* Blog Content */}
+            <div className="p-4 flex flex-col flex-grow">
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-gray-800 line-clamp-1 mb-1">
+                {blog.title || blog.sectionName}
+              </h3>
+
+              {/* Date */}
+              <p className="text-sm text-gray-500 mb-2">
+                {blog.createdAt
+                  ? new Date(blog.createdAt).toLocaleDateString()
+                  : ""}
+              </p>
+
+              {/* Description */}
+              <p className="text-gray-600 text-sm flex-grow line-clamp-3">
+                {blog.metaDescription}
+              </p>
+
+              {/* Read More */}
+              <p className="text-blue-600 mt-4 text-sm font-medium hover:underline">
+                Read More →
+              </p>
             </div>
+          </div>
+        </Link>
+      ))
+  )}
+</div>
 
-            <div className="mt-10 text-center">
-              <Button
-                asChild
-                className="bg-[#1f424b] hover:bg-[#2f5058] text-white"
-              >
-                <Link href="/blogs">See All Blogs</Link>
-              </Button>
-            </div>
 
-            {/* Extra Sections */}
-            <ExamDumpsSlider />
-            <ContentDumpsFirst />
-            <UnlockGoals />
-            
-<ContentDumpsSecond  />
-            <Testimonial/>
-          
-            <GeneralFAQs />
-          </>
-        )}
-      </section>
+  {/* See All Blogs Button */}
+  <div className="mt-10 text-center">
+    <Button
+      asChild
+      className="bg-[#1f424b] hover:bg-[#2f5058] text-white"
+    >
+      <Link href="/blogs">See All Blogs</Link>
+    </Button>
+  </div>
+</section>
+
+
+
+
+      {/* Extra Sections */}
+      <ExamDumpsSlider />
+      <ContentDumpsFirst />
+      <UnlockGoals />
+      <ContentDumpsSecond />
+      <Testimonial />
+      <GeneralFAQs />
     </div>
   );
 }
