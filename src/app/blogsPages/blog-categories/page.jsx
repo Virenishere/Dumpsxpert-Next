@@ -121,7 +121,7 @@ useEffect(() => {
             <p className="text-gray-600 italic col-span-full">No blogs found.</p>
           ) : (
             blogs.map((blog) => (
-              <Link key={blog._id} href={`/blogs/${blog.slug || blog._id}`}>
+              <Link key={blog._id} href={`/blogsPages/blog/${blog.slug || blog._id}`}>
                 <div className="bg-gray-100 h-full flex flex-col justify-between rounded-xl shadow-md p-4 hover:shadow-lg transition">
                   {blog.imageUrl && (
                     <img

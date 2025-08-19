@@ -1,43 +1,58 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
-const BlogDetail = () => {
-  // Mock current blog
-  const blog = {
-    title: "Mastering SAP Financials in 2025",
-    createdAt: "2025-07-20T10:00:00Z",
-    imageUrl: "https://via.placeholder.com/800x400.png?text=SAP+Financials",
-    content: `<p>SAP Financials is a core module in SAP ERP systems. It helps businesses track and manage financial conditions.</p><p>In this blog, we will dive deep into the modules, use cases, and why it's important in 2025.</p>`,
-    category: "SAP",
-    language: "English",
-    metaKeywords: "SAP, Finance, ERP, Accounting",
-  };
+const BlogDetail = ({ params }) => {
+  const [blog, setBlog] = useState(null);
+  const [recentBlogs, setRecentBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock recent blogs
-  const recentBlogs = [
-    {
-      _id: "2",
-      slug: "sap-mm-module",
-      title: "SAP MM Module Explained",
-      createdAt: "2025-07-15T09:00:00Z",
-      imageUrl: "https://via.placeholder.com/600x300.png?text=SAP+MM",
-    },
-    {
-      _id: "3",
-      slug: "future-of-erp",
-      title: "The Future of ERP in India",
-      createdAt: "2025-07-10T14:00:00Z",
-      imageUrl: "https://via.placeholder.com/600x300.png?text=ERP+Future",
-    },
-  ];
+  useEffect(() => {
+    const fetchBlog = async () => {
+      try {
+        // fetch single blog detail
+        const res = await fetch(
+          `http://localhost:3000/api/blogs/slug/${params.slug}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+
+        if (data?.data) {
+          setBlog(data.data);
+        }
+
+        // fetch recent blogs (for sidebar)
+        const recentRes = await fetch(
+          `http://localhost:3000/api/blogs?limit=5`,
+          { cache: "no-store" }
+        );
+        const recentData = await recentRes.json();
+
+        if (recentData?.data) {
+          setRecentBlogs(recentData.data.filter((b) => b.slug !== params.slug));
+        }
+      } catch (err) {
+        console.error("Error fetching blog:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlog();
+  }, [params.slug]);
+
+  if (loading) return <p className="p-10 text-center">Loading...</p>;
+  if (!blog) return <p className="p-10 text-center">Blog not found</p>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-20 grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div className="max-w-7xl mx-auto px-4 py-20 mt-10 grid grid-cols-1 md:grid-cols-3 gap-10">
       {/* Blog Content */}
       <div className="md:col-span-2">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">{blog.title}</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          {blog.title}
+        </h1>
 
         <div className="text-sm text-gray-500 mb-6">
           Published on{" "}
@@ -82,7 +97,7 @@ const BlogDetail = () => {
           <h2 className="text-2xl font-bold mb-6">Other Blogs</h2>
           <div className="space-y-6">
             {recentBlogs.map((b) => (
-              <Link key={b._id} href={`/blogs/${b.slug}`}>
+              <Link key={b._id} href={`/blogsPages/blog/${b.slug || blog._id}`}>
                 <Card className="overflow-hidden">
                   {b.imageUrl && (
                     <img
