@@ -18,7 +18,7 @@ export default function CategoryPage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await axios.get("http://localhost:3000/api/products");
+        const res = await axios.get("/api/products");
         setProducts(res.data.data || []);
       } catch (err) {
         console.error("Error fetching products:", err);

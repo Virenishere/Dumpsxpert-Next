@@ -22,20 +22,40 @@ const navlinks = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about" },
   { label: "IT Dumps", path: "/ItDumps", dropdownKey: "ItDumps" },
-  { label: "Blogs", path: "blogsPages/blogs", dropdownKey: "blogs" },
+  { label: "Blogs", path: "/blogsPages/blog-categories", dropdownKey: "blogs" },
   { label: "Contact Us", path: "/contact" },
 ];
-
-const dropdownData = {
-  ItDumps: ["AWS", "Azure", "Google Cloud", "Salesforce", "Cisco"],
-  blogs: ["Certifications", "Study Tips", "Industry Trends", "Product Updates"],
-};
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session, status } = useSession();
   const [userData, setUserData] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [dropdownData, setDropdownData] = useState({ ItDumps: [], blogs: [] });
+
+  // Fetch categories dynamically
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // Blogs categories
+        const blogRes = await fetch("/api/blogs/blog-categories");
+        const blogData = blogRes.ok ? await blogRes.json() : [];
+
+        // Product categories
+        const productRes = await fetch("/api/product-categories");
+        const productData = productRes.ok ? await productRes.json() : [];
+
+        setDropdownData({
+          blogs: blogData.map((c) => c.category), // your API returns { category: "xyz" }
+          ItDumps: productData.map((p) => p.name), // your API returns { name: "AWS" }
+        });
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
@@ -62,9 +82,9 @@ export default function Navbar() {
     }
   };
 
-  // Determine dashboard path based on user role and subscription
+  // Dashboard redirect
   const getDashboardPath = () => {
-    if (!userData) return "/dashboard/guest"; // Default to guest if no user data
+    if (!userData) return "/dashboard/guest";
     const { role, subscription } = userData;
     if (role === "admin") return "/dashboard/admin";
     if (role === "student" && subscription === "yes")
@@ -83,7 +103,7 @@ export default function Navbar() {
       <ul className="hidden lg:flex gap-10 font-semibold items-center relative">
         {navlinks.map((item, index) => {
           const hasDropdown =
-            item.dropdownKey && dropdownData[item.dropdownKey];
+            item.dropdownKey && dropdownData[item.dropdownKey]?.length > 0;
           return (
             <li
               key={index}
@@ -105,7 +125,7 @@ export default function Navbar() {
                   {dropdownData[item.dropdownKey].map((sub, i) => (
                     <li key={i}>
                       <Link
-                        href={`/ItDumps/${sub
+                        href={`/${item.dropdownKey === "ItDumps" ? "ItDumps" : "blogsPages"}/${sub
                           .toLowerCase()
                           .replace(/\s+/g, "-")}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -121,7 +141,7 @@ export default function Navbar() {
         })}
       </ul>
 
-      {/* Right section */}
+      {/* Right Section */}
       <div className="flex items-center gap-4">
         {/* Search */}
         <div className="hidden lg:block">
@@ -179,7 +199,7 @@ export default function Navbar() {
           </Link>
         )}
 
-        {/* Mobile menu toggle */}
+        {/* Mobile Menu Toggle */}
         <div className="lg:hidden">
           <Button
             variant="ghost"
@@ -190,74 +210,6 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="lg:hidden absolute left-0 top-20 w-full bg-white z-50 px-4 py-4 shadow-md">
-          <NavbarSearch hideOnLarge={true} />
-          <ul className="flex flex-col gap-4 font-semibold mt-4">
-            {navlinks.map((item, index) => (
-              <li key={index}>
-                <Link
-                  href={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className="block py-2"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              {status === "authenticated" ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 py-2">
-                    <Avatar>
-                      <AvatarImage
-                        src={
-                          userData?.profileImage ||
-                          "https://via.placeholder.com/40"
-                        }
-                      />
-                      <AvatarFallback>
-                        {userData?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">{userData?.name}</p>
-                      <p className="text-sm text-gray-500">{userData?.email}</p>
-                    </div>
-                  </div>
-                  <Link
-                    href={getDashboardPath()}
-                    onClick={() => setIsOpen(false)}
-                    className="block w-full text-center bg-gray-100 text-black font-medium px-4 py-2 rounded-lg hover:bg-gray-200"
-                  >
-                    Dashboard
-                  </Link>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      handleLogout();
-                      setIsOpen(false);
-                    }}
-                    className="w-full"
-                  >
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <Link
-                  href="/auth/signin"
-                  onClick={() => setIsOpen(false)}
-                  className="block w-full text-center bg-indigo-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
-                >
-                  Login / Register
-                </Link>
-              )}
-            </li>
-          </ul>
-        </div>
-      )}
     </nav>
   );
 }

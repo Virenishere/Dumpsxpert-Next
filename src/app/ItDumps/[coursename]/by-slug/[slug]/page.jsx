@@ -10,7 +10,7 @@ import Breadcrumbs from "@/components/public/Breadcrumbs";
 // Helper function to fetch product data
 async function fetchProduct(slug) {
   try {
-    const response = await fetch(`http://localhost:3000/api/products?slug=${slug}`);
+    const response = await fetch(`/api/products?slug=${slug}`);
     const data = await response.json();
     return data.data[0] || null; // Return the first product matching the slug
   } catch (error) {
@@ -22,7 +22,7 @@ async function fetchProduct(slug) {
 // Helper function to fetch all products for related products
 async function fetchAllProducts() {
   try {
-    const response = await fetch(`http://localhost:3000/api/products`);
+    const response = await fetch(`/api/products`);
     const data = await response.json();
     return data.data || [];
   } catch (error) {
@@ -148,7 +148,8 @@ export default function ProductDetailsPage() {
 
   const handleAddReview = (e) => {
     e.preventDefault();
-    if (!reviewForm.name || !reviewForm.comment || reviewForm.rating === 0) return;
+    if (!reviewForm.name || !reviewForm.comment || reviewForm.rating === 0)
+      return;
 
     setReviews([
       { ...reviewForm, createdAt: new Date().toISOString() },
@@ -385,7 +386,9 @@ export default function ProductDetailsPage() {
             <h2 className="text-lg font-semibold mb-2">Description:</h2>
             <div
               className="prose max-w-none text-sm"
-              dangerouslySetInnerHTML={{ __html: product.Description || "No description available" }}
+              dangerouslySetInnerHTML={{
+                __html: product.Description || "No description available",
+              }}
             />
           </div>
         </div>
@@ -396,7 +399,9 @@ export default function ProductDetailsPage() {
         <h2 className="text-lg font-semibold mb-2">Detailed Overview:</h2>
         <div
           className="prose max-w-none text-sm"
-          dangerouslySetInnerHTML={{ __html: product.longDescription || "No detailed overview available" }}
+          dangerouslySetInnerHTML={{
+            __html: product.longDescription || "No detailed overview available",
+          }}
         />
       </div>
 
@@ -434,7 +439,9 @@ export default function ProductDetailsPage() {
                   className="h-32 object-contain w-full mb-2"
                 />
                 <h3 className="text-sm font-semibold truncate">{p.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">₹ {p.dumpsPriceInr}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  ₹ {p.dumpsPriceInr}
+                </p>
               </div>
             ))}
           </div>

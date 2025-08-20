@@ -14,7 +14,7 @@ const MaintenancePage = () => {
     const fetchSettings = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api/maintenance-page/"
+          "/api/maintenance-page/"
         );
         const data = res.data;
         if (data) {
