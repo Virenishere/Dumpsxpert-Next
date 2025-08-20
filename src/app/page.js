@@ -9,12 +9,12 @@ import Image from "next/image";
 import banner from "@/assets/landingassets/banner.webp";
 
 // ✅ Corrected folder name (landingpage instead of "landin page")
-import ExamDumpsSlider from "@/landingpage/ExamDumpsSlider";
-import UnlockGoals from "@/landingpage/UnlockGoals";
-import GeneralFAQs from "@/landingpage/GeneralFAQs";
-import ContentDumpsFirst from "@/landingpage/ContentBoxFirst";
-import ContentDumpsSecond from "@/landingpage/ContentBoxSecond";
-import Testimonial from "@/landingpage/Testimonial";
+import ExamDumpsSlider from "@/landin page/ExamDumpsSlider";
+import UnlockGoals from "@/landin page/UnlockGoals";
+import GeneralFAQs from "@/landin page/GeneralFAQs";
+import ContentDumpsFirst from "@/landin page/ContentBoxFirst";
+import ContentDumpsSecond from "@/landin page/ContentBoxSecond";
+import Testimonial from "@/landin page/Testimonial";
 
 export const metadata = {
   title: "Dumpsxpert – #1 IT Exam Dumps Provider",
