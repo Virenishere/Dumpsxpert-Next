@@ -72,7 +72,8 @@ export default async function HomePage() {
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6">
             Dumpsxpert offers industry-validated study materials, real exam dumps, and browser-based practice tests to help you get certified faster — and smarter.
-          </p>
+          </p> 
+          {/* adding comment  */}
           <ul className="space-y-3 text-gray-700 mb-6 text-sm sm:text-base">
             {[
               " 100% Verified & Up-to-Date Dumps",
