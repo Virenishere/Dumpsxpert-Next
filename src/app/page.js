@@ -7,12 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
 import banner from "@/assets/landingassets/banner.webp";
-import ExamDumpsSlider from "@/landin page/ExamDumpsSlider";
-import UnlockGoals from "@/landin page/UnlockGoals";
-import GeneralFAQs from "@/landin page/GeneralFAQs";
-import ContentDumpsFirst from "@/landin page/ContentBoxFirst";
-import ContentDumpsSecond from "@/landin page/ContentBoxSecond";
-import Testimonial from "@/landin page/Testimonial";
+
+// ✅ Corrected folder name (landingpage instead of "landin page")
+import ExamDumpsSlider from "@/landingpage/ExamDumpsSlider";
+import UnlockGoals from "@/landingpage/UnlockGoals";
+import GeneralFAQs from "@/landingpage/GeneralFAQs";
+import ContentDumpsFirst from "@/landingpage/ContentBoxFirst";
+import ContentDumpsSecond from "@/landingpage/ContentBoxSecond";
+import Testimonial from "@/landingpage/Testimonial";
 
 export const metadata = {
   title: "Dumpsxpert – #1 IT Exam Dumps Provider",
@@ -58,9 +60,6 @@ export default async function HomePage() {
             <span className="text-[#13677c]">On the First Try</span>
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6">
-            Dumpsxpert offers industry-validated study materials, real exam dumps, and browser-based practice tests to help you get certified faster — and smarter.
-          </p> 
-          {/* adding comment  */}
             Dumpsxpert offers industry-validated study materials, real exam
             dumps, and browser-based practice tests to help you get certified
             faster — and smarter.
@@ -123,102 +122,89 @@ export default async function HomePage() {
       </section>
 
       {/* === Blog Section === */}
-{/* === Blog Section === */}
-<section className="py-20 px-4 md:px-20 bg-white">
-  <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-    Latest Exam Tips & Insights
-  </h2>
+      <section className="py-20 px-4 md:px-20 bg-white">
+        <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
+          Latest Exam Tips & Insights
+        </h2>
 
-  {/* Category Filter */}
-  <div className="flex flex-wrap justify-center gap-3 mb-10">
-    {categories?.map((cat) => (
-      <Button
-        key={cat._id}
-        variant="outline"
-        asChild
-        className="capitalize rounded-full"
-      >
-        <Link
-          href={`/?category=${encodeURIComponent(cat.category.toLowerCase())}`}
-        >
-          {cat.category}
-        </Link>
-      </Button>
-    ))}
-  </div>
+        {/* Category Filter */}
+        <div className="flex flex-wrap justify-center gap-3 mb-10">
+          {categories?.map((cat) => (
+            <Button
+              key={cat._id}
+              variant="outline"
+              asChild
+              className="capitalize rounded-full"
+            >
+              <Link
+                href={`/?category=${encodeURIComponent(
+                  cat.category.toLowerCase()
+                )}`}
+              >
+                {cat.category}
+              </Link>
+            </Button>
+          ))}
+        </div>
 
-{/* Blog Cards */}
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  {blogs.length === 0 ? (
-    <p className="text-center text-gray-500 col-span-full">
-      No blogs found.
-    </p>
-  ) : (
-    blogs
-      .slice() // copy array so reverse doesn’t mutate
-      .reverse() // make sure we get most recent first
-      .slice(0, 6) // limit to 6 blogs
-      .map((blog) => (
-        <Link
-          key={blog._id}
-          href={`/blogsPages/blog/${blog.slug || blog._id}`}
-        >
-          <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col h-full">
-            {/* Blog Image */}
-            {blog.imageUrl && (
-              <img
-                src={blog.imageUrl}
-                alt={blog.title || blog.sectionName}
-                className="w-full h-48 object-cover"
-              />
-            )}
+        {/* Blog Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {blogs.length === 0 ? (
+            <p className="text-center text-gray-500 col-span-full">
+              No blogs found.
+            </p>
+          ) : (
+            blogs
+              .slice()
+              .reverse()
+              .slice(0, 6)
+              .map((blog) => (
+                <Link
+                  key={blog._id}
+                  href={`/blogsPages/blog/${blog.slug || blog._id}`}
+                >
+                  <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col h-full">
+                    {blog.imageUrl && (
+                      <img
+                        src={blog.imageUrl}
+                        alt={blog.title || blog.sectionName}
+                        className="w-full h-48 object-cover"
+                      />
+                    )}
+                    <div className="p-4 flex flex-col flex-grow">
+                      <h3 className="text-lg font-semibold text-gray-800 line-clamp-1 mb-1">
+                        {blog.title || blog.sectionName}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {blog.createdAt
+                          ? new Date(blog.createdAt).toLocaleDateString()
+                          : ""}
+                      </p>
+                      <p className="text-gray-600 text-sm flex-grow line-clamp-3">
+                        {blog.metaDescription}
+                      </p>
+                      <p className="text-blue-600 mt-4 text-sm font-medium hover:underline">
+                        Read More →
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+          )}
+        </div>
 
-            {/* Blog Content */}
-            <div className="p-4 flex flex-col flex-grow">
-              {/* Title */}
-              <h3 className="text-lg font-semibold text-gray-800 line-clamp-1 mb-1">
-                {blog.title || blog.sectionName}
-              </h3>
+        {/* See All Blogs Button */}
+        <div className="mt-10 text-center">
+          <Button
+            asChild
+            className="bg-[#1f424b] hover:bg-[#2f5058] text-white"
+          >
+            <Link href="/blogs">See All Blogs</Link>
+          </Button>
+        </div>
+      </section>
 
-              {/* Date */}
-              <p className="text-sm text-gray-500 mb-2">
-                {blog.createdAt
-                  ? new Date(blog.createdAt).toLocaleDateString()
-                  : ""}
-              </p>
-
-              {/* Description */}
-              <p className="text-gray-600 text-sm flex-grow line-clamp-3">
-                {blog.metaDescription}
-              </p>
-
-              {/* Read More */}
-              <p className="text-blue-600 mt-4 text-sm font-medium hover:underline">
-                Read More →
-              </p>
-            </div>
-          </div>
-        </Link>
-      ))
-  )}
-</div>
-
-
-  {/* See All Blogs Button */}
-  <div className="mt-10 text-center">
-    <Button
-      asChild
-      className="bg-[#1f424b] hover:bg-[#2f5058] text-white"
-    >
-      <Link href="/blogs">See All Blogs</Link>
-    </Button>
-  </div>
-</section>
-
-
-
-
-      {/* Extra Sections */}
+      {/* === Extra Sections === */}
       <ExamDumpsSlider />
       <ContentDumpsFirst />
       <UnlockGoals />
