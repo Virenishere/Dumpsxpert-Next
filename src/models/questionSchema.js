@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const optionSchema = new mongoose.Schema({
   label: String,
@@ -39,4 +39,6 @@ const questionSchema = new mongoose.Schema(
 questionSchema.index({ examId: 1, questionCode: 1 }, { unique: true });
 
 // ✅ Check if model already exists to avoid overwrite error in Next.js dev
-module.exports = mongoose.models.Question || mongoose.model("Question", questionSchema);
+const Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
+
+export default Question;

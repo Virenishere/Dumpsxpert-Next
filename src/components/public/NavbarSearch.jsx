@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -6,11 +6,16 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function NavbarSearch({ hideOnLarge = false }) {
+  const [mounted, setMounted] = useState(false); // for hydration fix
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    setMounted(true); // only render on client
+  }, []);
 
   const toggleSearch = () => {
     setIsOpen((prev) => !prev);
@@ -41,11 +46,12 @@ export default function NavbarSearch({ hideOnLarge = false }) {
     }
   }, [query]);
 
+  if (!mounted) return null; // prevents SSR mismatch
+
   // Mobile Search with Results
   if (hideOnLarge) {
     return (
       <div className="relative w-full">
-        {/* Search Input */}
         <div className="relative mb-4">
           <input
             type="text"
@@ -67,28 +73,22 @@ export default function NavbarSearch({ hideOnLarge = false }) {
           )}
         </div>
 
-        {/* Search Results */}
         <div className="max-h-[50vh] overflow-y-auto">
-          {/* Hint */}
           {!searched && query.length === 0 && (
             <p className="text-gray-500 text-base font-medium text-center">
               Start typing to see products you are looking for.
             </p>
           )}
 
-          {/* Loading */}
           {loading && (
             <p className="text-gray-500 text-center">Loading...</p>
           )}
 
-          {/* Results */}
           {!loading && searched && products.length > 0 && (
             <div className="grid grid-cols-1 gap-4">
               {products.map((product) => (
                 <Link href="#" key={product.id}>
-                  <div
-                    className="border h-[350px] rounded-lg p-4 shadow-sm hover:shadow-md transition"
-                  >
+                  <div className="border h-[350px] rounded-lg p-4 shadow-sm hover:shadow-md transition">
                     <img
                       src={product.thumbnail}
                       alt={product.title}
@@ -105,7 +105,6 @@ export default function NavbarSearch({ hideOnLarge = false }) {
             </div>
           )}
 
-          {/* No Results */}
           {!loading && searched && products.length === 0 && (
             <p className="text-red-500 text-lg text-center">
               No products found.
@@ -137,7 +136,6 @@ export default function NavbarSearch({ hideOnLarge = false }) {
         {/* Input Section */}
         <div className="relative w-full flex justify-center mb-6">
           <div className="relative w-full">
-            {/* Centered Label */}
             <label
               htmlFor="search"
               className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[48px] font-bold text-black pointer-events-none transition-opacity duration-200 ${
@@ -168,26 +166,21 @@ export default function NavbarSearch({ hideOnLarge = false }) {
           </div>
         </div>
 
-        {/* Hint */}
         {!searched && (
           <p className="mb-6 text-gray-500 text-base font-medium text-center">
             Start typing to see products you are looking for.
           </p>
         )}
 
-        {/* Loading */}
         {loading && (
           <p className="mt-6 text-gray-500 text-center">Loading...</p>
         )}
 
-        {/* Results */}
         {!loading && searched && products.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-6 w-full max-w-6xl cursor-pointer">
             {products.map((product) => (
               <Link href="#" key={product.id}>
-                <div
-                  className="border h-[350px] rounded-lg p-4 shadow-sm hover:shadow-md transition"
-                >
+                <div className="border h-[350px] rounded-lg p-4 shadow-sm hover:shadow-md transition">
                   <img
                     src={product.thumbnail}
                     alt={product.title}
@@ -204,14 +197,12 @@ export default function NavbarSearch({ hideOnLarge = false }) {
           </div>
         )}
 
-        {/* No Results */}
         {!loading && searched && products.length === 0 && (
           <p className="text-red-500 mt-6 text-lg text-center">
             No products found.
           </p>
         )}
       </div>
-      
     </div>
   );
 }
