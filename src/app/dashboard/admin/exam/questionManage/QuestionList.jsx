@@ -61,7 +61,7 @@ const QuestionList = ({ examId, questions: initialQuestions }) => {
           Questions & Answers List
         </h2>
         <button
-          onClick={() => router.push(`/admin/exams/${examId}/questions/new`)}
+          onClick={() => router.push(`/dashboard/admin/exam/${examId}/questions/new`)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium shadow"
         >
           + Add Question
@@ -127,7 +127,7 @@ const QuestionList = ({ examId, questions: initialQuestions }) => {
                   <td className="p-3 space-x-2">
                     <button
                       onClick={() =>
-                        router.push(`/admin/exams/${examId}/questions/${q._id}`)
+                        router.push(`/dashboard/admin/exam/${examId}/questions/${q._id}`)
                       }
                       className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs"
                     >
