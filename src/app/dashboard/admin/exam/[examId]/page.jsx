@@ -1,17 +1,18 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
-const ReactQuill = dynamic(() => import('react-quill'), { 
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+
+const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
-  loading: () => <p>Loading editor...</p>
+  loading: () => <p>Loading editor...</p>,
 });
-import 'react-quill/dist/quill.snow.css';
-import { useRouter } from 'next/navigation';
+import "react-quill/dist/quill.snow.css";
 
 const ExamForm = ({ exam }) => {
   const router = useRouter();
   const isEditing = Boolean(exam);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     eachQuestionMark: "",
@@ -32,85 +33,84 @@ const ExamForm = ({ exam }) => {
   });
 
   const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
+  // Fetch products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch("/api/products");
+        if (!res.ok) throw new Error("Failed to load products");
         const data = await res.json();
         setProducts(data);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoadingProducts(false);
       }
     };
     fetchProducts();
   }, []);
 
+  // Pre-fill form for editing
   useEffect(() => {
     if (exam) {
       setFormData({
-        name: exam.name || "",
-        eachQuestionMark: exam.eachQuestionMark || "",
-        duration: exam.duration || "",
-        sampleDuration: exam.sampleDuration || "",
-        passingScore: exam.passingScore || "",
-        code: exam.code || "",
-        numberOfQuestions: exam.numberOfQuestions || "",
-        priceUSD: exam.priceUSD || "",
-        priceINR: exam.priceINR || "",
-        mrpUSD: exam.mrpUSD || "",
-        mrpINR: exam.mrpINR || "",
+        ...formData,
+        ...exam,
         status: exam.status || "unpublished",
-        mainInstructions: exam.mainInstructions || "",
-        sampleInstructions: exam.sampleInstructions || "",
-        lastUpdatedBy: exam.lastUpdatedBy || "",
-        productId: exam.productId || "",
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exam]);
 
+  // Input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setSubmitting(true);
+
     const payload = {
       ...formData,
-      eachQuestionMark: Number(formData.eachQuestionMark),
-      duration: Number(formData.duration),
-      sampleDuration: Number(formData.sampleDuration),
-      passingScore: Number(formData.passingScore),
-      numberOfQuestions: Number(formData.numberOfQuestions),
-      priceUSD: Number(formData.priceUSD),
-      priceINR: Number(formData.priceINR),
-      mrpUSD: Number(formData.mrpUSD),
-      mrpINR: Number(formData.mrpINR),
-      productId: formData.productId,
+      eachQuestionMark: Number(formData.eachQuestionMark) || 0,
+      duration: Number(formData.duration) || 0,
+      sampleDuration: Number(formData.sampleDuration) || 0,
+      passingScore: Number(formData.passingScore) || 0,
+      numberOfQuestions: Number(formData.numberOfQuestions) || 0,
+      priceUSD: Number(formData.priceUSD) || 0,
+      priceINR: Number(formData.priceINR) || 0,
+      mrpUSD: Number(formData.mrpUSD) || 0,
+      mrpINR: Number(formData.mrpINR) || 0,
     };
 
     try {
-      if (isEditing) {
-        await fetch(`/api/exams/${exam._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } else {
-        await fetch('/api/exams', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      }
-      router.push('/admin/exams');
+      const url = isEditing ? `/api/exams/${exam._id}` : "/api/exams";
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save exam");
+
+      router.push("/admin/exams");
     } catch (err) {
       console.error("Error saving exam:", err);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  // Quill modules
   const quillModules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -123,11 +123,29 @@ const ExamForm = ({ exam }) => {
     ],
   };
 
+  // Config for form fields
+  const fields = [
+    { name: "name", label: "Exam Name", type: "text", required: true },
+    { name: "eachQuestionMark", label: "Each Question Mark", type: "number" },
+    { name: "duration", label: "Duration (Minutes)", type: "number", required: true },
+    { name: "sampleDuration", label: "Sample Duration (Minutes)", type: "number" },
+    { name: "passingScore", label: "Passing Score (%)", type: "number" },
+    { name: "code", label: "Exam Code", type: "text" },
+    { name: "numberOfQuestions", label: "Number of Questions", type: "number", required: true },
+    { name: "priceUSD", label: "Price ($)", type: "number" },
+    { name: "priceINR", label: "Price (₹)", type: "number" },
+    { name: "mrpUSD", label: "MRP ($)", type: "number" },
+    { name: "mrpINR", label: "MRP (₹)", type: "number" },
+    { name: "lastUpdatedBy", label: "Updated By", type: "text", required: true },
+  ];
+
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-10 space-y-8">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <button
-          onClick={() => router.push('/admin/exams')}
+          onClick={() => router.push("/admin/exams")}
+          type="button"
           className="text-sm text-gray-600 hover:underline"
         >
           ← Back
@@ -137,124 +155,48 @@ const ExamForm = ({ exam }) => {
         </h2>
       </div>
 
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-xl border border-gray-200 shadow p-6 md:p-10 space-y-8"
       >
-        {/* Form fields same as before */}
+        {/* Input fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-  {[
-    {
-      name: "name",
-      label: "Exam Name",
-      placeholder: "e.g. Final Test",
-      type: "text",
-    },
-    {
-      name: "eachQuestionMark",
-      label: "Each Question Mark",
-      placeholder: "e.g. 2",
-      type: "number",
-    },
-    {
-      name: "duration",
-      label: "Duration (Minutes)",
-      placeholder: "e.g. 60",
-      type: "number",
-    },
-    {
-      name: "sampleDuration",
-      label: "Sample Duration (Minutes)",
-      placeholder: "e.g. 30",
-      type: "number",
-    },
-    {
-      name: "passingScore",
-      label: "Passing Score (%)",
-      placeholder: "e.g. 50",
-      type: "number",
-    },
-    {
-      name: "code",
-      label: "Exam Code",
-      placeholder: "e.g. EX-123",
-      type: "text",
-    },
-    {
-      name: "numberOfQuestions",
-      label: "Number of Questions",
-      placeholder: "e.g. 20",
-      type: "number",
-    },
-    {
-      name: "priceUSD",
-      label: "Price ($)",
-      placeholder: "e.g. 10",
-      type: "number",
-    },
-    {
-      name: "priceINR",
-      label: "Price (₹)",
-      placeholder: "e.g. 799",
-      type: "number",
-    },
-    {
-      name: "mrpUSD",
-      label: "MRP ($)",
-      placeholder: "e.g. 10",
-      type: "number",
-    },
-    {
-      name: "mrpINR",
-      label: "MRP (₹)",
-      placeholder: "e.g. 799",
-      type: "number",
-    },
-    {
-      name: "lastUpdatedBy",
-      label: "Updated By",
-      placeholder: "e.g. admin123",
-      type: "text",
-    },
-  ].map((field, i) => (
-    <div key={i}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {field.label}
-      </label>
-      <input
-        name={field.name}
-        type={field.type}
-        value={formData[field.name]}
-        onChange={handleChange}
-        placeholder={field.placeholder}
-        className="w-full border rounded-lg px-4 py-2 text-sm shadow-sm"
-        required={[
-          "name",
-          "duration",
-          "numberOfQuestions",
-          "lastUpdatedBy",
-        ].includes(field.name)}
-        min={field.type === "number" ? 0 : undefined}
-      />
-    </div>
-  ))}
+          {fields.map(({ name, label, type, required }) => (
+            <div key={name}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {label}
+              </label>
+              <input
+                name={name}
+                type={type}
+                value={formData[name]}
+                onChange={handleChange}
+                placeholder={`Enter ${label}`}
+                className="w-full border rounded-lg px-4 py-2 text-sm shadow-sm"
+                required={required}
+                min={type === "number" ? 0 : undefined}
+              />
+            </div>
+          ))}
 
-  {/* Status */}
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Status
-    </label>
-    <select
-      name="status"
-      value={formData.status}
-      onChange={handleChange}
-      className="w-full border rounded-lg px-4 py-2 text-sm shadow-sm"
-    >
-      <option value="unpublished">Unpublished</option>
-      <option value="published">Published</option>
-    </select>
-  </div>
-</div>
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-2 text-sm shadow-sm"
+            >
+              <option value="unpublished">Unpublished</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+        </div>
+
         {/* Product Dropdown */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -266,8 +208,11 @@ const ExamForm = ({ exam }) => {
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-2 text-sm shadow-sm"
             required
+            disabled={loadingProducts}
           >
-            <option value="">Select a product</option>
+            <option value="">
+              {loadingProducts ? "Loading products..." : "Select a product"}
+            </option>
             {products.map((product) => (
               <option key={product._id} value={product._id}>
                 {product.title} - {product.sapExamCode}
@@ -275,7 +220,7 @@ const ExamForm = ({ exam }) => {
             ))}
           </select>
         </div>
-        
+
         {/* ReactQuill Editors */}
         <div className="space-y-6">
           <div>
@@ -284,14 +229,15 @@ const ExamForm = ({ exam }) => {
             </label>
             <ReactQuill
               theme="snow"
-              placeholder="Enter main exam instructions here..."
               modules={quillModules}
-              value={formData.mainInstructions}
-              onChange={(content) => setFormData(prev => ({ ...prev, mainInstructions: content }))}
-              className="bg-white"
+              placeholder="Enter main exam instructions..."
+              value={formData.mainInstructions || ""}
+              onChange={(content) =>
+                setFormData((prev) => ({ ...prev, mainInstructions: content }))
+              }
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sample Exam Instructions
@@ -299,19 +245,27 @@ const ExamForm = ({ exam }) => {
             <ReactQuill
               theme="snow"
               modules={quillModules}
-              value={formData.sampleInstructions}
-              onChange={(content) => setFormData(prev => ({ ...prev, sampleInstructions: content }))}
-              className="bg-white"
+              placeholder="Enter sample exam instructions..."
+              value={formData.sampleInstructions || ""}
+              onChange={(content) =>
+                setFormData((prev) => ({ ...prev, sampleInstructions: content }))
+              }
             />
           </div>
         </div>
 
+        {/* Submit */}
         <div className="pt-4 flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow"
+            disabled={submitting}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow disabled:opacity-50"
           >
-            {isEditing ? "Update Exam" : "Save Exam"}
+            {submitting
+              ? "Saving..."
+              : isEditing
+              ? "Update Exam"
+              : "Save Exam"}
           </button>
         </div>
       </form>
