@@ -10,7 +10,7 @@ if (!cached) cached = global.mongoose = { conn: null };
 
 export const connectMongoDB = async () => {
   if (cached.conn) return cached.conn;
-  
+
   const opts = {
     bufferCommands: false,
   };
@@ -35,3 +35,4 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export { clientPromise };
+console.log("Mongoose connection state:", mongoose.connection.readyState);

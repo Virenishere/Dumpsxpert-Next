@@ -207,7 +207,7 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className={`h-screen transition-all duration-300 shadow-md overflow-y-auto mt-28 bg-white text-gray-800 
+      className={`h-screen transition-all overflow-scroll duration-300 shadow-md  pb-40 overflow-y-auto mt-28 bg-white text-gray-800 
         ${isOpen ? "w-64 p-4" : "w-16 p-2"}`}
     >
       {/* Sidebar Header */}
@@ -222,7 +222,7 @@ export default function AdminSidebar() {
       </div>
 
       {sidebarItems.map((section, index) => (
-        <div key={index} className="mb-6">
+        <div key={index} className="mb-16 m\pb-16">
           {isOpen && (
             <div className="text-xs uppercase text-gray-500 mb-2 flex items-center gap-2">
               {iconMap[section.sectionTitle] || null}

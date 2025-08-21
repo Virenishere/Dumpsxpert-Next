@@ -59,16 +59,18 @@ const useCartStore = create(useCartStoreBase);
 
 // Selector: Total Price
 export const getCartTotal = () =>
-  useCartStore.getState().cartItems.reduce(
-    (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
-    0
-  );
+  useCartStore
+    .getState()
+    .cartItems.reduce(
+      (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
+      0
+    );
 
 // Selector: Has in cart
 export const hasInCart = (id, type) => {
-  return !!useCartStore.getState().cartItems.find(
-    (item) => item._id === id && item.type === type
-  );
+  return !!useCartStore
+    .getState()
+    .cartItems.find((item) => item._id === id && item.type === type);
 };
 
 export default useCartStore;

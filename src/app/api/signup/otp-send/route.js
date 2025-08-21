@@ -58,7 +58,10 @@ export async function POST(req) {
     }
 
     console.log("EMAIL_SERVER_USER:", process.env.EMAIL_SERVER_USER);
-    console.log("EMAIL_SERVER_PASSWORD:", process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing");
+    console.log(
+      "EMAIL_SERVER_PASSWORD:",
+      process.env.EMAIL_SERVER_PASSWORD ? "[Redacted]" : "Missing"
+    );
     console.log("EMAIL_FROM:", process.env.EMAIL_FROM);
 
     // Configure nodemailer

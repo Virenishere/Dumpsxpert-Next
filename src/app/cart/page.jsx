@@ -126,21 +126,30 @@ const Cart = () => {
         throw new Error("Axios instance is not initialized");
       }
 
-      console.log("Initiating Razorpay order creation:", { amount: grandTotal, userId });
+      console.log("Initiating Razorpay order creation:", {
+        amount: grandTotal,
+        userId,
+      });
       const orderData = {
         amount: grandTotal,
         currency: "INR",
         userId, // Include userId for validation
       };
-      const response = await instance.post("/api/payments/razorpay/create-order", orderData);
+      const response = await instance.post(
+        "/api/payments/razorpay/create-order",
+        orderData
+      );
       if (!response.data?.id) {
-        throw new Error(response.data.error || "Failed to create Razorpay order");
+        throw new Error(
+          response.data.error || "Failed to create Razorpay order"
+        );
       }
 
       const { id, amount, currency } = response.data;
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_7kAotmP1o8JR8V",
+        key:
+          process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_7kAotmP1o8JR8V",
         amount: amount,
         currency: currency,
         order_id: id,
@@ -162,7 +171,11 @@ const Cart = () => {
             );
 
             if (paymentVerification.data.success) {
-              console.log("Creating order with:", { userId, items: cartItems, totalAmount: grandTotal });
+              console.log("Creating order with:", {
+                userId,
+                items: cartItems,
+                totalAmount: grandTotal,
+              });
               await instance.post("/api/order", {
                 userId,
                 items: cartItems,
@@ -185,7 +198,9 @@ const Cart = () => {
               router.push("/dashboard");
               toast.success("Payment successful! Redirecting to dashboard...");
             } else {
-              toast.error(paymentVerification.data.error || "Payment verification failed");
+              toast.error(
+                paymentVerification.data.error || "Payment verification failed"
+              );
             }
           } catch (error) {
             console.error("Payment verification error:", {
@@ -193,7 +208,9 @@ const Cart = () => {
               stack: error.stack,
               response: error.response?.data,
             });
-            toast.error(error.response?.data?.error || "Payment verification failed");
+            toast.error(
+              error.response?.data?.error || "Payment verification failed"
+            );
           }
         },
         theme: {
@@ -254,7 +271,7 @@ const Cart = () => {
                 Your cart is empty. Add items to your cart to proceed.
               </p>
               <Button
-                onClick={() => router.push("/itdumps")}
+                onClick={() => router.push("/ItDumps")}
                 variant="default"
                 className="bg-indigo-600 hover:bg-indigo-700"
               >

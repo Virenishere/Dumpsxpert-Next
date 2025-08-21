@@ -7,7 +7,11 @@ export async function GET() {
   try {
     await connectMongoDB();
     const categories = await ProductCategory.find().lean();
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=59",
+      },
+    });
   } catch (error) {
     console.error("GET Error:", error);
     return NextResponse.json(
@@ -22,21 +26,34 @@ export async function POST(req) {
     await connectMongoDB();
 
     const formData = await req.formData();
-
-    const name = formData.get("name");
-    const status = formData.get("status") || "Ready";
+    const name = formData.get("name")?.toString().trim();
+    const status = formData.get("status")?.toString().trim() || "Ready";
     const file = formData.get("image");
 
-    if (!name || !file) {
+    if (!name || name.length < 2) {
       return NextResponse.json(
-        { message: "Name and image required" },
+        { message: "Name must be at least 2 characters" },
+        { status: 400 }
+      );
+    }
+
+    if (!["Ready", "Not Ready"].includes(status)) {
+      return NextResponse.json(
+        { message: "Invalid status" },
+        { status: 400 }
+      );
+    }
+
+    if (!(file instanceof File) || !file.type.startsWith("image/")) {
+      return NextResponse.json(
+        { message: "Invalid file type. Only images are allowed" },
         { status: 400 }
       );
     }
 
     const uploadResult = await uploadToCloudinary(file);
 
-    if (!uploadResult.secure_url) {
+    if (!uploadResult.secure_url || !uploadResult.public_id) {
       throw new Error("Cloudinary upload failed");
     }
 

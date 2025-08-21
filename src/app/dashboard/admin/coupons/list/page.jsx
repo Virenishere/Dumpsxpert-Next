@@ -59,8 +59,13 @@ const CouponList = () => {
           </thead>
           <tbody className="text-gray-700 text-sm">
             {coupons.map((coupon) => (
-              <tr key={coupon._id} className="hover:bg-gray-50 transition border-b">
-                <td className="px-6 py-4 font-medium">{coupon.name || "N/A"}</td>
+              <tr
+                key={coupon._id}
+                className="hover:bg-gray-50 transition border-b"
+              >
+                <td className="px-6 py-4 font-medium">
+                  {coupon.name || "N/A"}
+                </td>
                 <td className="px-6 py-4">{coupon.code || "N/A"}</td>
                 <td className="px-6 py-4">
                   {coupon.discount ? `${coupon.discount}%` : "N/A"}
@@ -73,7 +78,9 @@ const CouponList = () => {
                 </td>
                 <td className="px-6 py-4 space-x-3">
                   <button
-                    onClick={() => router.push(`/admin/coupons/edit/${coupon._id}`)}
+                    onClick={() =>
+                      router.push(`/admin/coupons/edit/${coupon._id}`)
+                    }
                     className="text-indigo-600 hover:text-indigo-800 font-medium"
                   >
                     Edit
