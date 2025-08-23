@@ -26,14 +26,14 @@ export const metadata = {
 export default async function HomePage() {
   // fetch categories
   const categoriesRes = await fetch(
-    `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blogs/blog-categories`,
+    `${process.env.NEXTAUTH_URL || "http://${process.env.NEXT_PUBLIC_BASE_URL}"}/api/blogs/blog-categories`,
     { cache: "no-store" }
   );
   const categories = await categoriesRes.json();
 
   // fetch blogs
   const blogsRes = await fetch(
-    `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/blogs`,
+    `${process.env.NEXTAUTH_URL || "http://${process.env.NEXT_PUBLIC_BASE_URL}"}/api/blogs`,
     { cache: "no-store" }
   );
   const blogsData = await blogsRes.json();

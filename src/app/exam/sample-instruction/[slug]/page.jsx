@@ -16,7 +16,7 @@ export default function SampleInstructionsPage({ params }) {
 
     const fetchInstructions = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/exams/byslug/sdfsdf%20sdfsf`);
+        const res = await axios.get(`http://${process.env.NEXT_PUBLIC_BASE_URL}/api/exams/byslug/sdfsdf%20sdfsf`);
         const examData = res.data[0];
         setExam(examData);
       } catch (err) {
