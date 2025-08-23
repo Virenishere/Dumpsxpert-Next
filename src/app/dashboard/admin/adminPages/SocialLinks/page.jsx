@@ -192,6 +192,7 @@ export default function SocialLinks() {
       </Card>
 
       {/* Snackbar for notifications */}
+      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
