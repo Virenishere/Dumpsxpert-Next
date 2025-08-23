@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import useCartStore from "@/store/useCartStore";
 
 const navlinks = [
   { label: "Home", path: "/" },
@@ -32,6 +33,20 @@ export default function Navbar() {
   const [userData, setUserData] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [dropdownData, setDropdownData] = useState({ ItDumps: [], blogs: [] });
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  // Subscribe to cart changes
+  useEffect(() => {
+    // Initial cart count
+    setCartItemCount(useCartStore.getState().cartItems.length);
+    
+    // Subscribe to cart changes
+    const unsubscribe = useCartStore.subscribe(
+      (state) => setCartItemCount(state.cartItems.length)
+    );
+    
+    return () => unsubscribe();
+  }, []);
 
   // Fetch categories dynamically
   useEffect(() => {
@@ -148,9 +163,14 @@ export default function Navbar() {
           <NavbarSearch hideOnLarge={false} />
         </div>
 
-        {/* Cart */}
-        <Link href="/cart">
+        {/* Cart with Counter */}
+        <Link href="/cart" className="relative">
           <ShoppingCart className="hover:text-gray-500" />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {cartItemCount}
+            </span>
+          )}
         </Link>
 
         {/* Authenticated User */}

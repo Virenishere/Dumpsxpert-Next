@@ -1,12 +1,12 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import dynamic from 'next/dynamic';
-const ReactQuill = dynamic(() => import('react-quill'), { 
+import dynamic from "next/dynamic";
+import { useRouter, useParams } from "next/navigation";
+const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
   loading: () => <p>Loading editor...</p>
 });
-import 'react-quill/dist/quill.snow.css';
-import { useRouter } from 'next/navigation';
+import "react-quill/dist/quill.snow.css";
 
 const InputWrapper = ({ label, children }) => (
   <div className="mb-4">
@@ -28,9 +28,15 @@ const quillModules = {
   ],
 };
 
-const QuestionForm = ({ exam = {}, question }) => {
+const QuestionForm = () => {
   const router = useRouter();
-  
+  const params = useParams();
+  const { examId, questionId } = params || {};
+
+  const [exam, setExam] = useState(null);
+  const [question, setQuestion] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const [questionText, setQuestionText] = useState("");
   const [questionImage, setQuestionImage] = useState("");
   const [options, setOptions] = useState([
@@ -51,33 +57,55 @@ const QuestionForm = ({ exam = {}, question }) => {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
 
+  // Fetch exam and question if editing
   useEffect(() => {
-    if (question) {
-      setQuestionText(question.questionText || "");
-      setQuestionImage(question.questionImage || "");
-      setOptions(
-        question.options?.map(o => ({ text: o.text, image: o.image || "" })) || [
-          { text: "", image: "" },
-          { text: "", image: "" },
-          { text: "", image: "" },
-          { text: "", image: "" },
-        ]
-      );
-      setCorrectAnswers(
-        ["A", "B", "C", "D"].map(label => question.correctAnswers?.includes(label))
-      );
-      setIsSample(question.isSample || false);
-      setType(question.questionType || "radio");
-      setStatus(question.status || "publish");
-      setMarks(question.marks || 1);
-      setNegativeMarks(question.negativeMarks || 0);
-      setDifficulty(question.difficulty || "Easy");
-      setExplanation(question.explanation || "");
-      setTags(question.tags?.join(", ") || "");
-      setSubject(question.subject || "");
-      setTopic(question.topic || "");
-    }
-  }, [question]);
+    const fetchData = async () => {
+      try {
+        if (examId) {
+          const examRes = await fetch(`/api/exams/${examId}`);
+          if (!examRes.ok) throw new Error("Failed to fetch exam");
+          const examData = await examRes.json();
+          setExam(examData);
+        }
+
+        if (questionId) {
+          const qRes = await fetch(`/api/questions/${questionId}`);
+          if (!qRes.ok) throw new Error("Failed to fetch question");
+          const qData = await qRes.json();
+          setQuestion(qData);
+
+          setQuestionText(qData.questionText || "");
+          setQuestionImage(qData.questionImage || "");
+          setOptions(
+            qData.options?.map(o => ({ text: o.text, image: o.image || "" })) || [
+              { text: "", image: "" },
+              { text: "", image: "" },
+              { text: "", image: "" },
+              { text: "", image: "" },
+            ]
+          );
+          setCorrectAnswers(
+            ["A", "B", "C", "D"].map(label => qData.correctAnswers?.includes(label))
+          );
+          setIsSample(qData.isSample || false);
+          setType(qData.questionType || "radio");
+          setStatus(qData.status || "publish");
+          setMarks(qData.marks || 1);
+          setNegativeMarks(qData.negativeMarks || 0);
+          setDifficulty(qData.difficulty || "Easy");
+          setExplanation(qData.explanation || "");
+          setTags(qData.tags?.join(", ") || "");
+          setSubject(qData.subject || "");
+          setTopic(qData.topic || "");
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [examId, questionId]);
 
   const toggleCorrectAnswer = (index) => {
     const updated = [...correctAnswers];
@@ -91,10 +119,7 @@ const QuestionForm = ({ exam = {}, question }) => {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const res = await fetch('/api/questions/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch("/api/questions/upload", { method: "POST", body: formData });
       const data = await res.json();
       return data.secure_url;
     } catch (err) {
@@ -123,7 +148,8 @@ const QuestionForm = ({ exam = {}, question }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    if (!exam) return;
+
     const payload = {
       examId: exam._id,
       questionText,
@@ -149,17 +175,17 @@ const QuestionForm = ({ exam = {}, question }) => {
     };
 
     try {
-      if (question) {
-        await fetch(`/api/questions/${question._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+      if (questionId) {
+        await fetch(`/api/questions/${questionId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
       } else {
-        await fetch('/api/questions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        await fetch("/api/questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
       }
       router.push(`/admin/exams/${exam._id}/questions`);
@@ -167,6 +193,8 @@ const QuestionForm = ({ exam = {}, question }) => {
       console.error("Error saving question:", err);
     }
   };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="p-6 space-y-6 bg-white rounded-md shadow-md border">
@@ -178,101 +206,82 @@ const QuestionForm = ({ exam = {}, question }) => {
       </button>
 
       <h2 className="text-2xl font-semibold text-gray-800">
-        {question ? "Edit" : "Add"} Question
+        {questionId ? "Edit" : "Add"} Question
       </h2>
 
       <form onSubmit={handleSubmit} className="grid gap-6">
-        {/* Form fields same as before */}
+        {/* Question fields */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <InputWrapper label="Exam Code">
-    <input
-      type="text"
-      value={question?.questionCode || exam.code || ""}
-      disabled
-      className="input-style"
-    />
-  </InputWrapper>
+          <InputWrapper label="Marks">
+            <input
+              type="number"
+              className="input-style"
+              value={marks}
+              onChange={(e) => setMarks(+e.target.value)}
+            />
+          </InputWrapper>
+          <InputWrapper label="Negative Marks">
+            <input
+              type="number"
+              className="input-style"
+              value={negativeMarks}
+              onChange={(e) => setNegativeMarks(+e.target.value)}
+            />
+          </InputWrapper>
+          <InputWrapper label="Difficulty">
+            <select
+              className="input-style"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option>Easy</option>
+              <option>Medium</option>
+              <option>Hard</option>
+            </select>
+          </InputWrapper>
+          <InputWrapper label="Status">
+            <select
+              className="input-style"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="publish">Publish</option>
+              <option value="draft">Draft</option>
+            </select>
+          </InputWrapper>
+          <InputWrapper label="Subject">
+            <input
+              className="input-style"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </InputWrapper>
+          <InputWrapper label="Topic">
+            <input
+              className="input-style"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </InputWrapper>
+          <InputWrapper label="Tags (comma separated)">
+            <input
+              className="input-style"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+          </InputWrapper>
+          <InputWrapper label="Add to Sample">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isSample}
+                onChange={() => setIsSample(!isSample)}
+              />
+              Yes
+            </label>
+          </InputWrapper>
+        </section>
 
-  <InputWrapper label="Question Type (auto)">
-    <input className="input-style" type="text" value={type} readOnly />
-  </InputWrapper>
-
-  <InputWrapper label="Marks">
-    <input
-      className="input-style"
-      type="number"
-      value={marks}
-      onChange={(e) => setMarks(+e.target.value)}
-    />
-  </InputWrapper>
-
-  <InputWrapper label="Negative Marks">
-    <input
-      className="input-style"
-      type="number"
-      value={negativeMarks}
-      onChange={(e) => setNegativeMarks(+e.target.value)}
-    />
-  </InputWrapper>
-
-  <InputWrapper label="Difficulty">
-    <select
-      className="input-style"
-      value={difficulty}
-      onChange={(e) => setDifficulty(e.target.value)}
-    >
-      <option>Easy</option>
-      <option>Medium</option>
-      <option>Hard</option>
-    </select>
-  </InputWrapper>
-
-  <InputWrapper label="Status">
-    <select
-      className="input-style"
-      value={status}
-      onChange={(e) => setStatus(e.target.value)}
-    >
-      <option value="publish">Publish</option>
-      <option value="draft">Draft</option>
-    </select>
-  </InputWrapper>
-
-  <InputWrapper label="Subject">
-    <input
-      className="input-style"
-      value={subject}
-      onChange={(e) => setSubject(e.target.value)}
-    />
-  </InputWrapper>
-
-  <InputWrapper label="Topic">
-    <input
-      className="input-style"
-      value={topic}
-      onChange={(e) => setTopic(e.target.value)}
-    />
-  </InputWrapper>
-
-  <InputWrapper label="Tags (comma separated)">
-    <input
-      className="input-style"
-      value={tags}
-      onChange={(e) => setTags(e.target.value)}
-    />
-  </InputWrapper>
-
-  <InputWrapper label="Add to Sample">
-    <label className="flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        checked={isSample}
-        onChange={() => setIsSample(!isSample)}
-      />
-      Yes
-    </label>
-  </InputWrapper>
-</section>
         <InputWrapper label="Question Text">
           <ReactQuill
             theme="snow"
@@ -281,15 +290,13 @@ const QuestionForm = ({ exam = {}, question }) => {
             onChange={setQuestionText}
           />
         </InputWrapper>
-        
-        {/* Other form sections */}
-        
+
         <div className="flex justify-end">
           <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-sm font-medium shadow"
           >
-            {question ? "Update Question" : "Save Question"}
+            {questionId ? "Update Question" : "Save Question"}
           </button>
         </div>
       </form>
