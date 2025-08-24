@@ -38,14 +38,41 @@ export default function SignIn() {
   };
 
   const handleOAuthSignIn = async (provider) => {
+    setError("");
     try {
-      // Use redirect: true but don't specify a callbackUrl
-      // This will let NextAuth handle the authentication flow
-      // and then your middleware will handle the proper routing
-      await signIn(provider);
-      
-      // No need for setTimeout or manual redirection
-      // The middleware will automatically route to the correct dashboard
+      const result = await signIn(provider, { callbackUrl: "/dashboard", redirect: false });
+      if (result?.error) {
+        setError("OAuth sign-in failed");
+        return;
+      }
+
+      // Retry fetching user info up to 5 times (with 500ms delay)
+      let user = null;
+      let attempts = 0;
+      while (attempts < 5 && !user) {
+        try {
+          const res = await fetch("/api/user/me");
+          if (res.ok) {
+            user = await res.json();
+            break;
+          }
+        } catch {}
+        await new Promise((r) => setTimeout(r, 500));
+        attempts++;
+      }
+
+      if (!user) {
+        setError("Could not fetch user info after sign-in. Please try refreshing the page or contact support.");
+        return;
+      }
+
+      if (user.role === "admin") {
+        router.push("/dashboard/admin");
+      } else if (user.role === "student" && user.subscription === "yes") {
+        router.push("/dashboard/student");
+      } else {
+        router.push("/dashboard/guest");
+      }
     } catch (err) {
       setError("An error occurred during OAuth sign-in. Please try again.");
       console.error("OAuth sign-in error:", err);
