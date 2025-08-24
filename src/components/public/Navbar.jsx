@@ -36,6 +36,7 @@ export default function Navbar() {
   const [cartItemCount, setCartItemCount] = useState(0);
 
   // Subscribe to cart changes
+   // Subscribe to cart changes
   useEffect(() => {
     // Initial cart count
     setCartItemCount(useCartStore.getState().cartItems.length);
