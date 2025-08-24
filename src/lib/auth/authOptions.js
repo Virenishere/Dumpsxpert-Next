@@ -298,6 +298,8 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60, // 24 hours
+        // Explicitly set domain for Vercel/production
+        domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
     callbackUrl: {
@@ -306,6 +308,7 @@ export const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
     csrfToken: {
@@ -315,6 +318,7 @@ export const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
     state: {
@@ -325,6 +329,7 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 900,
+        domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
     pkceCodeVerifier: {
@@ -335,6 +340,7 @@ export const authOptions = {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 900,
+        domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
   },
