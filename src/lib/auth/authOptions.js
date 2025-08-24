@@ -291,14 +291,14 @@ export const authOptions = {
   debug: process.env.NODE_ENV !== 'production', // Disable debug in production
   cookies: {
     sessionToken: {
-      name: 'next-auth.session-token',
+      // Set both legacy and __Secure- prefixed cookie names for edge compatibility
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60, // 24 hours
-        // Explicitly set domain for Vercel/production
         domain: process.env.NODE_ENV === 'production' ? '.dumpsxpert-next.vercel.app' : undefined,
       },
     },
