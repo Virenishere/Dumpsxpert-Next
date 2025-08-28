@@ -83,8 +83,8 @@ export const authOptions = {
       },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID || "873410730510-jlf5uvog05c9fm87hrjgl9q0hqh1jl9q.apps.googleusercontent.com",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "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",
       authorization: {
         params: {
           prompt: 'consent',
@@ -94,8 +94,8 @@ export const authOptions = {
       },
     }),
     FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+      clientId: process.env.FACEBOOK_CLIENT_ID || "733837585885174",
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "9550143785b374636d4b76bb3884d5a0",
     }),
   ],
   session: {
