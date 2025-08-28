@@ -287,7 +287,7 @@ export const authOptions = {
     error: '/auth/error',
     signOut: '/auth/signout',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET ,
   debug: process.env.NODE_ENV !== 'production', // Disable debug in production
   cookies: {
     sessionToken: {

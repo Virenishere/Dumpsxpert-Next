@@ -3,8 +3,8 @@ import Razorpay from "razorpay";
 
 // Initialize Razorpay instance once
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: "rzp_test_7kAotmP1o8JR8V",
+  key_secret: "jPBuKq2CqukA4JxOXKfp8QU7",
 });
 
 export async function POST(request) {
