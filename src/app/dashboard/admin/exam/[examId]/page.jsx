@@ -11,6 +11,7 @@ export default function ExamFormWrapper() {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch products
   useEffect(() => {
     const fetchExam = async () => {
       if (!examId) {

@@ -4,23 +4,35 @@ import { MongoClient } from "mongodb";
 const uri = "mongodb+srv://upadhayayyogesh832:123freelanceproject123@cluster0.ga6zbb8.mongodb.net/dumpsxpertDB?retryWrites=true&w=majority&appName=Cluster0";
 
 if (!uri) throw new Error("Missing MongoDB URI");
-console.log(uri);
+
+// ------------------
 // Mongoose Connection
+// ------------------
 let cached = global.mongoose;
-if (!cached) cached = global.mongoose = { conn: null };
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 export const connectMongoDB = async () => {
   if (cached.conn) return cached.conn;
 
-  const opts = {
-    bufferCommands: false,
-  };
+  if (!cached.promise) {
+    const opts = { bufferCommands: false };
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => mongoose);
+  }
 
-  cached.conn = await mongoose.connect(uri, opts);
-  return cached.conn;
+  try {
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
 };
 
+// ------------------
 // MongoDB Native Client
+// ------------------
 let client;
 let clientPromise;
 
@@ -36,4 +48,3 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export { clientPromise };
-console.log("Mongoose connection state:", mongoose.connection.readyState);
