@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useParams } from "next/navigation";
+=======
 
-const ReactQuill = dynamic(() => import("react-quill"), {
-  ssr: false,
-  loading: () => <p>Loading editor...</p>,
-});
-import "react-quill/dist/quill.snow.css";
+
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation"; // ✅ correct import
+import ExamForm from "../examComps/ExamForm";
 
 const ExamForm = () => {
   const router = useRouter();
@@ -61,19 +61,31 @@ const ExamForm = () => {
 
     fetchExam();
   }, [examId]);
+export default function ExamFormWrapper() {
+  const params = useParams();
+  const examId = params.examId; // App Router me jo folder name hai use params se milega
+
+  const [exam, setExam] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch products
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchExam = async () => {
+      if (!examId) {
+        // Add mode
+        setExam(null);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await fetch("/api/products");
-        if (!res.ok) throw new Error("Failed to load products");
+        const res = await fetch(`http://localhost:3000/api/exams/${examId}`);
         const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+        setExam(data); // Edit mode
+      } catch (err) {
+        console.error("Failed to fetch exam:", err);
       } finally {
-        setLoadingProducts(false);
+        setLoading(false);
       }
     };
     fetchProducts();
@@ -113,7 +125,9 @@ const ExamForm = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to save exam");
+
+    fetchExam();
+  }, [examId]);
 
       router.push("/admin/exams");
     } catch (err) {
@@ -150,6 +164,15 @@ const ExamForm = () => {
     { name: "mrpINR", label: "MRP (₹)", type: "number" },
     { name: "lastUpdatedBy", label: "Updated By", type: "text", required: true },
   ];
+=======
+  if (loading) return (
+    <div className="flex justify-center items-center py-10">
+      <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+    </div>
+  );
 
   if (loadingExam) return <p>Loading exam...</p>;
 
@@ -261,7 +284,9 @@ const ExamForm = () => {
         </div>
       </form>
     </div>
-  );
-};
 
-export default ExamForm;
+
+      <ExamForm exam={exam} />
+   
+  );
+}
