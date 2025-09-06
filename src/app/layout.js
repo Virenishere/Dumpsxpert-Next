@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/public/Navbar"; // make sure this is client component
 import Footer from "@/components/public/Footer"; // client component
 import Providers from "@/components/providers"; // client component
+import ClientOnly from '@/components/ClientOnly';
 
 const inter = Inter({ subsets: ["latin"] });
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning={true}
         className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>

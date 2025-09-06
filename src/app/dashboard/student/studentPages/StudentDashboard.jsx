@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import PurchasedItemsAccess from "@/components/student/PurchasedItemsAccess";
 
 ChartJS.register(
   CategoryScale,
@@ -116,6 +117,16 @@ export default function StudentDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Purchased Items Access Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: 0.6 }}
+        className="mb-10"
+      >
+        <PurchasedItemsAccess />
+      </motion.div>
 
       {/* Quick Access Section */}
       <div className="grid md:grid-cols-3 gap-6">

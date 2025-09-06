@@ -70,7 +70,7 @@ const Cart = () => {
 
   const handleQuantityChange = (id, type, operation) => {
     updateQuantity(id, type, operation);
-    toast.success(`Quantity ${operation === 'inc' ? 'increased' : 'decreased'} for item`);
+    toast.success(`Quantity updated for ${type}`);
   };
 
   const handleCoupon = async () => {
@@ -89,15 +89,11 @@ const Cart = () => {
         code: couponCode,
       });
       const { discount } = response.data.coupon;
-      
-      // Calculate discount amount based on subtotal
-      const discountAmount = (subtotal * discount) / 100;
-      
-      setDiscount(discountAmount);
+      setDiscount(discount);
       setCouponError("");
       setCouponApplicable(true);
       setCouponCode("");
-      toast.success(`Coupon applied successfully! You saved ₹${discountAmount.toFixed(2)} (${discount}% off)`);
+      toast.success(`Coupon applied successfully! You saved ₹${discount}`);
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to apply coupon";
@@ -253,7 +249,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-[80vh] bg-[#f9f9f9] px-4 py-10">
+    <div className="h-screen bg-[#f9f9f9] px-4 py-10">
       <Toaster richColors position="top-right" />
       <div className="flex justify-center mt-16 mb-4">
         <h2 className="text-4xl font-bold text-gray-800">Your Cart</h2>
@@ -359,12 +355,12 @@ const Cart = () => {
             <p>
               Discount:{" "}
               <span className="float-right text-green-600">
-                ₹{discount.toFixed(2) || 0}
+                ₹{discount || 0}
               </span>
             </p>
             {couponApplicable && (
               <p className="text-green-600 text-sm">
-                Coupon applied! You saved ₹{discount.toFixed(2)}
+                Coupon applied! You saved ₹{discount}
               </p>
             )}
           </div>
